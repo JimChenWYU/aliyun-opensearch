@@ -10,7 +10,7 @@ EOF;
 return PhpCsFixer\Config::create()
     ->setRiskyAllowed(true)
     ->setRules(array(
-        '@Psr-4' => true,
+        '@Symfony' => true,
         'header_comment' => array('header' => $header),
         'array_syntax' => array('syntax' => 'short'),
         'ordered_imports' => true,
@@ -22,6 +22,7 @@ return PhpCsFixer\Config::create()
     ->setFinder(
         PhpCsFixer\Finder::create()
             ->exclude('vendor')
+            ->exclude('tests')
             ->in(__DIR__)
     )
 ;

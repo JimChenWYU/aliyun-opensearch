@@ -9,11 +9,24 @@
             "email": "18219111672@163.com"
         }
     ],
-    "require": {},
+    "require": {
+        "php": ">=5.5"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.5"
+    },
     "autoload": {
-        "JimChen\\AliyunOpenSearch\\": "src"
+        "classmap": [
+            "src/"
+        ],
+        "psr-4": {
+            "OpenSearch\\": "src",
+            "Thrift\\": "src/Thrift"
+        }
     },
     "autoload-dev": {
-        "JimChen\\AliyunOpenSearch\\Tests": "test"
+        "psr-4": {
+            "OpenSearch\\Tests\\": "tests"
+        }
     }
 }
