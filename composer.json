@@ -1,0 +1,19 @@
+{
+    "name": "jimchen/aliyun-opensearch",
+    "description": "Aliyun OpenSearch SDK",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "JimChen",
+            "email": "18219111672@163.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "JimChen\\AliyunOpenSearch\\": "src"
+    },
+    "autoload-dev": {
+        "JimChen\\AliyunOpenSearch\\Tests": "test"
+    }
+}
