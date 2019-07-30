@@ -6,7 +6,7 @@
     "authors": [
         {
             "name": "JimChen",
-            "email": "18219111672@163.com"
+            "email": "imjimchen@163.com"
         }
     ],
     "require": {
@@ -18,11 +18,7 @@
     "autoload": {
         "classmap": [
             "src/"
-        ],
-        "psr-4": {
-            "OpenSearch\\": "src",
-            "Thrift\\": "src/Thrift"
-        }
+        ]
     },
     "autoload-dev": {
         "psr-4": {

@@ -150,7 +150,7 @@ class ClauseParamsBuilder
 
                 $dist = [];
                 foreach ($keys as $k => $v) {
-                    if ($distinct->$k) {
+                    if (isset($distinct->$k)) {
                         $dist[] = Constant::get($v).self::CLAUSE_AGGREGATE_KV_SEPARATOR.$distinct->$k;
                     }
                 }
