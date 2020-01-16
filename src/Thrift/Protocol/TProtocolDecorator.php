@@ -1,11 +1,23 @@
 <?php
-
 /*
- * This file is part of the jimchen/aliyun-opensearch.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
  *
- * (c) JimChen <18219111672@163.com>
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * This source file is subject to the MIT license that is bundled.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ * @package thrift.protocol
  */
 
 namespace Thrift\Protocol;
@@ -18,6 +30,8 @@ use Thrift\Exception\TException;
  * concrete decorator subclasses. While it has no abstract methods, it
  * is marked abstract as a reminder that by itself, it does not modify
  * the behaviour of the enclosed <code>TProtocol</code>.
+ *
+ * @package Thrift\Protocol
  */
 abstract class TProtocolDecorator extends TProtocol
 {
@@ -66,8 +80,7 @@ abstract class TProtocolDecorator extends TProtocol
      * @param string $name Struct name
      *
      * @throws TException on write error
-     *
-     * @return int How many bytes written
+     * @return int        How many bytes written
      */
     public function writeStructBegin($name)
     {
@@ -78,8 +91,7 @@ abstract class TProtocolDecorator extends TProtocol
      * Close a struct.
      *
      * @throws TException on write error
-     *
-     * @return int How many bytes written
+     * @return int        How many bytes written
      */
     public function writeStructEnd()
     {
@@ -167,7 +179,7 @@ abstract class TProtocolDecorator extends TProtocol
     }
 
     /**
-     * Reads the message header.
+     * Reads the message header
      *
      * @param string $name  Function name
      * @param int    $type  message type TMessageType::CALL or TMessageType::REPLY
@@ -179,7 +191,7 @@ abstract class TProtocolDecorator extends TProtocol
     }
 
     /**
-     * Read the close of message.
+     * Read the close of message
      */
     public function readMessageEnd()
     {

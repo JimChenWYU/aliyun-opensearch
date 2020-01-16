@@ -1,21 +1,35 @@
 <?php
 
 /*
- * This file is part of the jimchen/aliyun-opensearch.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
  *
- * (c) JimChen <18219111672@163.com>
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * This source file is subject to the MIT license that is bundled.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ * @package thrift.protocol
  */
 
 namespace Thrift\Protocol;
 
 use Thrift\Exception\TException;
-use Thrift\Protocol\SimpleJSON\CollectionMapKeyException;
+use Thrift\Exception\TProtocolException;
 use Thrift\Protocol\SimpleJSON\Context;
 use Thrift\Protocol\SimpleJSON\ListContext;
-use Thrift\Protocol\SimpleJSON\MapContext;
 use Thrift\Protocol\SimpleJSON\StructContext;
+use Thrift\Protocol\SimpleJSON\MapContext;
+use Thrift\Protocol\SimpleJSON\CollectionMapKeyException;
 
 /**
  * SimpleJSON implementation of thrift protocol, ported from Java.
@@ -30,9 +44,9 @@ class TSimpleJSONProtocol extends TProtocol
     const RBRACKET = ']';
     const QUOTE = '"';
 
-    const NAME_MAP = 'map';
-    const NAME_LIST = 'lst';
-    const NAME_SET = 'set';
+    const NAME_MAP = "map";
+    const NAME_LIST = "lst";
+    const NAME_SET = "set";
 
     protected $writeContext_ = null;
     protected $writeContextStack_ = [];
@@ -47,7 +61,7 @@ class TSimpleJSONProtocol extends TProtocol
     }
 
     /**
-     * Pop the last write context off the stack.
+     * Pop the last write context off the stack
      */
     protected function popWriteContext()
     {
@@ -55,13 +69,13 @@ class TSimpleJSONProtocol extends TProtocol
     }
 
     /**
-     * Used to make sure that we are not encountering a map whose keys are containers.
+     * Used to make sure that we are not encountering a map whose keys are containers
      */
     protected function assertContextIsNotMapKey($invalidKeyType)
     {
         if ($this->writeContext_->isMapKey()) {
             throw new CollectionMapKeyException(
-                'Cannot serialize a map with keys that are of type '.
+                "Cannot serialize a map with keys that are of type " .
                 $invalidKeyType
             );
         }
@@ -71,7 +85,7 @@ class TSimpleJSONProtocol extends TProtocol
     {
         $this->writeContext_->write();
 
-        $this->trans_->write(json_encode((string) $b));
+        $this->trans_->write(json_encode((string)$b));
     }
 
     private function writeJSONInteger($num)
@@ -84,7 +98,7 @@ class TSimpleJSONProtocol extends TProtocol
             $this->trans_->write(self::QUOTE);
         }
 
-        $this->trans_->write((int) $num);
+        $this->trans_->write((int)$num);
 
         if ($isMapKey) {
             $this->trans_->write(self::QUOTE);
@@ -101,7 +115,7 @@ class TSimpleJSONProtocol extends TProtocol
             $this->trans_->write(self::QUOTE);
         }
 
-        $this->trans_->write(json_encode((float) $num));
+        $this->trans_->write(json_encode((float)$num));
 
         if ($isMapKey) {
             $this->trans_->write(self::QUOTE);
@@ -109,7 +123,7 @@ class TSimpleJSONProtocol extends TProtocol
     }
 
     /**
-     * Constructor.
+     * Constructor
      */
     public function __construct($trans)
     {
@@ -118,7 +132,7 @@ class TSimpleJSONProtocol extends TProtocol
     }
 
     /**
-     * Writes the message header.
+     * Writes the message header
      *
      * @param string $name  Function name
      * @param int    $type  message type TMessageType::CALL or TMessageType::REPLY
@@ -134,7 +148,7 @@ class TSimpleJSONProtocol extends TProtocol
     }
 
     /**
-     * Close the message.
+     * Close the message
      */
     public function writeMessageEnd()
     {
@@ -145,7 +159,7 @@ class TSimpleJSONProtocol extends TProtocol
     /**
      * Writes a struct header.
      *
-     * @param string $name Struct name
+     * @param  string     $name Struct name
      */
     public function writeStructBegin($name)
     {
@@ -262,98 +276,99 @@ class TSimpleJSONProtocol extends TProtocol
      * - see http://wiki.apache.org/thrift/ThriftUsageJava
      * - use JSON instead
      */
+
     public function readMessageBegin(&$name, &$type, &$seqid)
     {
-        throw new TException('Not implemented');
+        throw new TException("Not implemented");
     }
 
     public function readMessageEnd()
     {
-        throw new TException('Not implemented');
+        throw new TException("Not implemented");
     }
 
     public function readStructBegin(&$name)
     {
-        throw new TException('Not implemented');
+        throw new TException("Not implemented");
     }
 
     public function readStructEnd()
     {
-        throw new TException('Not implemented');
+        throw new TException("Not implemented");
     }
 
     public function readFieldBegin(&$name, &$fieldType, &$fieldId)
     {
-        throw new TException('Not implemented');
+        throw new TException("Not implemented");
     }
 
     public function readFieldEnd()
     {
-        throw new TException('Not implemented');
+        throw new TException("Not implemented");
     }
 
     public function readMapBegin(&$keyType, &$valType, &$size)
     {
-        throw new TException('Not implemented');
+        throw new TException("Not implemented");
     }
 
     public function readMapEnd()
     {
-        throw new TException('Not implemented');
+        throw new TException("Not implemented");
     }
 
     public function readListBegin(&$elemType, &$size)
     {
-        throw new TException('Not implemented');
+        throw new TException("Not implemented");
     }
 
     public function readListEnd()
     {
-        throw new TException('Not implemented');
+        throw new TException("Not implemented");
     }
 
     public function readSetBegin(&$elemType, &$size)
     {
-        throw new TException('Not implemented');
+        throw new TException("Not implemented");
     }
 
     public function readSetEnd()
     {
-        throw new TException('Not implemented');
+        throw new TException("Not implemented");
     }
 
     public function readBool(&$bool)
     {
-        throw new TException('Not implemented');
+        throw new TException("Not implemented");
     }
 
     public function readByte(&$byte)
     {
-        throw new TException('Not implemented');
+        throw new TException("Not implemented");
     }
 
     public function readI16(&$i16)
     {
-        throw new TException('Not implemented');
+        throw new TException("Not implemented");
     }
 
     public function readI32(&$i32)
     {
-        throw new TException('Not implemented');
+        throw new TException("Not implemented");
     }
 
     public function readI64(&$i64)
     {
-        throw new TException('Not implemented');
+        throw new TException("Not implemented");
     }
 
     public function readDouble(&$dub)
     {
-        throw new TException('Not implemented');
+        throw new TException("Not implemented");
     }
 
     public function readString(&$str)
     {
-        throw new TException('Not implemented');
+        throw new TException("Not implemented");
     }
 }

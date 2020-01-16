@@ -1,21 +1,34 @@
 <?php
-
 /*
- * This file is part of the jimchen/aliyun-opensearch.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
  *
- * (c) JimChen <18219111672@163.com>
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * This source file is subject to the MIT license that is bundled.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ * @package thrift.protocol
  */
 
 namespace Thrift\Protocol;
 
+use Thrift\Type\TType;
 use Thrift\Exception\TProtocolException;
 use Thrift\Factory\TStringFuncFactory;
-use Thrift\Type\TType;
 
 /**
  * Compact implementation of the Thrift protocol.
+ *
  */
 class TCompactProtocol extends TProtocol
 {
@@ -50,7 +63,7 @@ class TCompactProtocol extends TProtocol
     const TYPE_BITS = 0x07;
     const TYPE_SHIFT_AMOUNT = 5;
 
-    protected static $ctypes = [
+    protected static $ctypes = array(
     TType::STOP => TCompactProtocol::COMPACT_STOP,
     TType::BOOL => TCompactProtocol::COMPACT_TRUE, // used for collection
     TType::BYTE => TCompactProtocol::COMPACT_BYTE,
@@ -63,10 +76,10 @@ class TCompactProtocol extends TProtocol
     TType::LST => TCompactProtocol::COMPACT_LIST,
     TType::SET => TCompactProtocol::COMPACT_SET,
     TType::MAP => TCompactProtocol::COMPACT_MAP,
-  ];
+    );
 
-    protected static $ttypes = [
-    TCompactProtocol::COMPACT_STOP => TType::STOP,
+    protected static $ttypes = array(
+    TCompactProtocol::COMPACT_STOP => TType::STOP ,
     TCompactProtocol::COMPACT_TRUE => TType::BOOL, // used for collection
     TCompactProtocol::COMPACT_FALSE => TType::BOOL,
     TCompactProtocol::COMPACT_BYTE => TType::BYTE,
@@ -79,16 +92,16 @@ class TCompactProtocol extends TProtocol
     TCompactProtocol::COMPACT_LIST => TType::LST,
     TCompactProtocol::COMPACT_SET => TType::SET,
     TCompactProtocol::COMPACT_MAP => TType::MAP,
-  ];
+    );
 
     protected $state = TCompactProtocol::STATE_CLEAR;
     protected $lastFid = 0;
     protected $boolFid = null;
     protected $boolValue = null;
-    protected $structs = [];
-    protected $containers = [];
+    protected $structs = array();
+    protected $containers = array();
 
-    // Some varint / zigzag helper methods
+  // Some varint / zigzag helper methods
     public function toZigZag($n, $bits)
     {
         return ($n << 1) ^ ($n >> ($bits - 1));
@@ -101,14 +114,15 @@ class TCompactProtocol extends TProtocol
 
     public function getVarint($data)
     {
-        $out = '';
+        $out = "";
         while (true) {
-            if (0 === ($data & ~0x7f)) {
+            if (($data & ~0x7f) === 0) {
                 $out .= chr($data);
                 break;
+            } else {
+                $out .= chr(($data & 0xff) | 0x80);
+                $data = $data >> 7;
             }
-            $out .= chr(($data & 0xff) | 0x80);
-            $data = $data >> 7;
         }
 
         return $out;
@@ -132,9 +146,9 @@ class TCompactProtocol extends TProtocol
             $x = $this->trans_->readAll(1);
             $arr = unpack('C', $x);
             $byte = $arr[1];
-            ++$idx;
+            $idx += 1;
             $result |= ($byte & 0x7f) << $shift;
-            if (0 === ($byte >> 7)) {
+            if (($byte >> 7) === 0) {
                 return $idx;
             }
             $shift += 7;
@@ -151,11 +165,11 @@ class TCompactProtocol extends TProtocol
     public function writeMessageBegin($name, $type, $seqid)
     {
         $written =
-      $this->writeUByte(TCompactProtocol::PROTOCOL_ID) +
-      $this->writeUByte(TCompactProtocol::VERSION |
+        $this->writeUByte(TCompactProtocol::PROTOCOL_ID) +
+        $this->writeUByte(TCompactProtocol::VERSION |
                         ($type << TCompactProtocol::TYPE_SHIFT_AMOUNT)) +
-      $this->writeVarint($seqid) +
-      $this->writeString($name);
+        $this->writeVarint($seqid) +
+        $this->writeString($name);
         $this->state = TCompactProtocol::STATE_VALUE_WRITE;
 
         return $written;
@@ -170,7 +184,7 @@ class TCompactProtocol extends TProtocol
 
     public function writeStructBegin($name)
     {
-        $this->structs[] = [$this->state, $this->lastFid];
+        $this->structs[] = array($this->state, $this->lastFid);
         $this->state = TCompactProtocol::STATE_FIELD_WRITE;
         $this->lastFid = 0;
 
@@ -199,7 +213,7 @@ class TCompactProtocol extends TProtocol
             $written = $this->writeUByte(($delta << 4) | $type);
         } else {
             $written = $this->writeByte($type) +
-        $this->writeI16($fid);
+            $this->writeI16($fid);
         }
         $this->lastFid = $fid;
 
@@ -208,15 +222,16 @@ class TCompactProtocol extends TProtocol
 
     public function writeFieldBegin($field_name, $field_type, $field_id)
     {
-        if (TTYPE::BOOL == $field_type) {
+        if ($field_type == TTYPE::BOOL) {
             $this->state = TCompactProtocol::STATE_BOOL_WRITE;
             $this->boolFid = $field_id;
 
             return 0;
-        }
-        $this->state = TCompactProtocol::STATE_VALUE_WRITE;
+        } else {
+            $this->state = TCompactProtocol::STATE_VALUE_WRITE;
 
-        return $this->writeFieldHeader(self::$ctypes[$field_type], $field_id);
+            return $this->writeFieldHeader(self::$ctypes[$field_type], $field_id);
+        }
     }
 
     public function writeFieldEnd()
@@ -235,7 +250,7 @@ class TCompactProtocol extends TProtocol
         } else {
             $written = $this->writeUByte(0xf0 |
                                    self::$ctypes[$etype]) +
-        $this->writeVarint($size);
+            $this->writeVarint($size);
         }
         $this->containers[] = $this->state;
         $this->state = TCompactProtocol::STATE_CONTAINER_WRITE;
@@ -246,11 +261,11 @@ class TCompactProtocol extends TProtocol
     public function writeMapBegin($key_type, $val_type, $size)
     {
         $written = 0;
-        if (0 == $size) {
+        if ($size == 0) {
             $written = $this->writeByte(0);
         } else {
             $written = $this->writeVarint($size) +
-        $this->writeUByte(self::$ctypes[$key_type] << 4 |
+            $this->writeUByte(self::$ctypes[$key_type] << 4 |
                           self::$ctypes[$val_type]);
         }
         $this->containers[] = $this->state;
@@ -292,17 +307,18 @@ class TCompactProtocol extends TProtocol
 
     public function writeBool($value)
     {
-        if (TCompactProtocol::STATE_BOOL_WRITE == $this->state) {
+        if ($this->state == TCompactProtocol::STATE_BOOL_WRITE) {
             $ctype = TCompactProtocol::COMPACT_FALSE;
             if ($value) {
                 $ctype = TCompactProtocol::COMPACT_TRUE;
             }
 
             return $this->writeFieldHeader($ctype, $this->boolFid);
-        } elseif (TCompactProtocol::STATE_CONTAINER_WRITE == $this->state) {
+        } elseif ($this->state == TCompactProtocol::STATE_CONTAINER_WRITE) {
             return $this->writeByte($value ? 1 : 0);
+        } else {
+            throw new TProtocolException('Invalid state in compact protocol');
         }
-        throw new TProtocolException('Invalid state in compact protocol');
     }
 
     public function writeByte($value)
@@ -359,14 +375,14 @@ class TCompactProtocol extends TProtocol
 
         $compact_type = $compact_type_and_delta & 0x0f;
 
-        if (TType::STOP == $compact_type) {
+        if ($compact_type == TType::STOP) {
             $field_type = $compact_type;
             $field_id = 0;
 
             return $result;
         }
         $delta = $compact_type_and_delta >> 4;
-        if (0 == $delta) {
+        if ($delta == 0) {
             $result += $this->readI16($field_id);
         } else {
             $field_id = $this->lastFid + $delta;
@@ -374,10 +390,10 @@ class TCompactProtocol extends TProtocol
         $this->lastFid = $field_id;
         $field_type = $this->getTType($compact_type);
 
-        if (TCompactProtocol::COMPACT_TRUE == $compact_type) {
+        if ($compact_type == TCompactProtocol::COMPACT_TRUE) {
             $this->state = TCompactProtocol::STATE_BOOL_READ;
             $this->boolValue = true;
-        } elseif (TCompactProtocol::COMPACT_FALSE == $compact_type) {
+        } elseif ($compact_type == TCompactProtocol::COMPACT_FALSE) {
             $this->state = TCompactProtocol::STATE_BOOL_READ;
             $this->boolValue = false;
         } else {
@@ -424,14 +440,14 @@ class TCompactProtocol extends TProtocol
     {
         $protoId = 0;
         $result = $this->readUByte($protoId);
-        if (TCompactProtocol::PROTOCOL_ID != $protoId) {
+        if ($protoId != TCompactProtocol::PROTOCOL_ID) {
             throw new TProtocolException('Bad protocol id in TCompact message');
         }
         $verType = 0;
         $result += $this->readUByte($verType);
         $type = ($verType >> TCompactProtocol::TYPE_SHIFT_AMOUNT) & TCompactProtocol::TYPE_BITS;
         $version = $verType & TCompactProtocol::VERSION_MASK;
-        if (TCompactProtocol::VERSION != $version) {
+        if ($version != TCompactProtocol::VERSION) {
             throw new TProtocolException('Bad version in TCompact message');
         }
         $result += $this->readVarint($seqid);
@@ -448,7 +464,7 @@ class TCompactProtocol extends TProtocol
     public function readStructBegin(&$name)
     {
         $name = ''; // unused
-        $this->structs[] = [$this->state, $this->lastFid];
+        $this->structs[] = array($this->state, $this->lastFid);
         $this->state = TCompactProtocol::STATE_FIELD_READ;
         $this->lastFid = 0;
 
@@ -470,7 +486,7 @@ class TCompactProtocol extends TProtocol
         $result = $this->readUByte($sizeType);
         $size = $sizeType >> 4;
         $type = $this->getTType($sizeType);
-        if (15 == $size) {
+        if ($size == 15) {
             $result += $this->readVarint($size);
         }
         $this->containers[] = $this->state;
@@ -528,14 +544,15 @@ class TCompactProtocol extends TProtocol
 
     public function readBool(&$value)
     {
-        if (TCompactProtocol::STATE_BOOL_READ == $this->state) {
+        if ($this->state == TCompactProtocol::STATE_BOOL_READ) {
             $value = $this->boolValue;
 
             return 0;
-        } elseif (TCompactProtocol::STATE_CONTAINER_READ == $this->state) {
+        } elseif ($this->state == TCompactProtocol::STATE_CONTAINER_READ) {
             return $this->readByte($value);
+        } else {
+            throw new TProtocolException('Invalid state in compact protocol');
         }
-        throw new TProtocolException('Invalid state in compact protocol');
     }
 
     public function readI16(&$value)
@@ -574,15 +591,15 @@ class TCompactProtocol extends TProtocol
         return self::$ttypes[$byte & 0x0f];
     }
 
-    // If we are on a 32bit architecture we have to explicitly deal with
-    // 64-bit twos-complement arithmetic since PHP wants to treat all ints
-    // as signed and any int over 2^31 - 1 as a float
+  // If we are on a 32bit architecture we have to explicitly deal with
+  // 64-bit twos-complement arithmetic since PHP wants to treat all ints
+  // as signed and any int over 2^31 - 1 as a float
 
-    // Read and write I64 as two 32 bit numbers $hi and $lo
+  // Read and write I64 as two 32 bit numbers $hi and $lo
 
     public function readI64(&$value)
     {
-        // Read varint from wire
+      // Read varint from wire
         $hi = 0;
         $lo = 0;
 
@@ -593,23 +610,23 @@ class TCompactProtocol extends TProtocol
             $x = $this->trans_->readAll(1);
             $arr = unpack('C', $x);
             $byte = $arr[1];
-            ++$idx;
-            // Shift hi and lo together.
+            $idx += 1;
+          // Shift hi and lo together.
             if ($shift < 28) {
                 $lo |= (($byte & 0x7f) << $shift);
-            } elseif (28 == $shift) {
+            } elseif ($shift == 28) {
                 $lo |= (($byte & 0x0f) << 28);
                 $hi |= (($byte & 0x70) >> 4);
             } else {
                 $hi |= (($byte & 0x7f) << ($shift - 32));
             }
-            if (0 === ($byte >> 7)) {
+            if (($byte >> 7) === 0) {
                 break;
             }
             $shift += 7;
         }
 
-        // Now, unzig it.
+      // Now, unzig it.
         $xorer = 0;
         if ($lo & 1) {
             $xorer = 0xffffffff;
@@ -619,24 +636,24 @@ class TCompactProtocol extends TProtocol
         $hi = ($hi >> 1) ^ $xorer;
         $lo = $lo ^ $xorer;
 
-        // Now put $hi and $lo back together
+      // Now put $hi and $lo back together
         $isNeg = $hi < 0 || $hi & 0x80000000;
 
-        // Check for a negative
+      // Check for a negative
         if ($isNeg) {
             $hi = ~$hi & (int) 0xffffffff;
             $lo = ~$lo & (int) 0xffffffff;
 
             if ($lo == (int) 0xffffffff) {
-                ++$hi;
+                $hi++;
                 $lo = 0;
             } else {
-                ++$lo;
+                $lo++;
             }
         }
 
-        // Force 32bit words in excess of 2G to be positive - we deal with sign
-        // explicitly below
+      // Force 32bit words in excess of 2G to be positive - we deal with sign
+      // explicitly below
 
         if ($hi & (int) 0x80000000) {
             $hi &= (int) 0x7fffffff;
@@ -648,7 +665,7 @@ class TCompactProtocol extends TProtocol
             $lo += 0x80000000;
         }
 
-        // Create as negative value first, since we can store -2^63 but not 2^63
+      // Create as negative value first, since we can store -2^63 but not 2^63
         $value = -$hi * 4294967296 - $lo;
 
         if (!$isNeg) {
@@ -660,9 +677,9 @@ class TCompactProtocol extends TProtocol
 
     public function writeI64($value)
     {
-        // If we are in an I32 range, use the easy method below.
+      // If we are in an I32 range, use the easy method below.
         if (($value > 4294967296) || ($value < -4294967296)) {
-            // Convert $value to $hi and $lo
+          // Convert $value to $hi and $lo
             $neg = $value < 0;
 
             if ($neg) {
@@ -677,13 +694,13 @@ class TCompactProtocol extends TProtocol
                 $lo = ~$lo;
                 if (($lo & (int) 0xffffffff) == (int) 0xffffffff) {
                     $lo = 0;
-                    ++$hi;
+                    $hi++;
                 } else {
-                    ++$lo;
+                    $lo++;
                 }
             }
 
-            // Now do the zigging and zagging.
+          // Now do the zigging and zagging.
             $xorer = 0;
             if ($neg) {
                 $xorer = 0xffffffff;
@@ -694,28 +711,29 @@ class TCompactProtocol extends TProtocol
             $lo = ($lo ^ $xorer) & 0xffffffff;
             $hi = ($hi ^ $xorer) & 0xffffffff;
 
-            // now write out the varint, ensuring we shift both hi and lo
-            $out = '';
+          // now write out the varint, ensuring we shift both hi and lo
+            $out = "";
             while (true) {
-                if (0 === ($lo & ~0x7f) &&
-           0 === $hi) {
+                if (($lo & ~0x7f) === 0 &&
+                 $hi === 0) {
                     $out .= chr($lo);
                     break;
+                } else {
+                    $out .= chr(($lo & 0xff) | 0x80);
+                    $lo = $lo >> 7;
+                    $lo = $lo | ($hi << 25);
+                    $hi = $hi >> 7;
+                  // Right shift carries sign, but we don't want it to.
+                    $hi = $hi & (127 << 25);
                 }
-                $out .= chr(($lo & 0xff) | 0x80);
-                $lo = $lo >> 7;
-                $lo = $lo | ($hi << 25);
-                $hi = $hi >> 7;
-                // Right shift carries sign, but we don't want it to.
-                $hi = $hi & (127 << 25);
             }
 
             $ret = TStringFuncFactory::create()->strlen($out);
             $this->trans_->write($out, $ret);
 
             return $ret;
+        } else {
+            return $this->writeVarint($this->toZigZag($value, 64));
         }
-
-        return $this->writeVarint($this->toZigZag($value, 64));
     }
 }

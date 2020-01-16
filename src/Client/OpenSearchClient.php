@@ -1,21 +1,33 @@
 <?php
-
 /*
- * This file is part of the jimchen/aliyun-opensearch.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- * (c) JimChen <18219111672@163.com>
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * This source file is subject to the MIT license that is bundled.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 namespace OpenSearch\Client;
 
+use OpenSearch\Generated\OpenSearch\OpenSearch;
+use OpenSearch\Generated\OpenSearch\Constant;
 use OpenSearch\Generated\Common\OpenSearchResult;
 use OpenSearch\Generated\Common\TraceInfo;
-use OpenSearch\Generated\OpenSearch\OpenSearch;
 
 class OpenSearchClient extends OpenSearch
 {
+
     const METHOD_GET = 'GET';
     const METHOD_POST = 'POST';
     const METHOD_PUT = 'PUT';
@@ -23,8 +35,10 @@ class OpenSearchClient extends OpenSearch
     const METHOD_PATCH = 'PATCH';
 
     const API_VERSION = '3';
-    const SDK_VERSION = '3.0.1';
     const API_TYPE = 'openapi';
+
+    const SDK_VERSION = '3.2.1';
+    const SDK_TYPE    = 'opensearch_sdk';
 
     private $debug = false;
 
@@ -35,18 +49,19 @@ class OpenSearchClient extends OpenSearch
      * 构造方法。
      *
      * @param string $accessKey 指定您的accessKeyId，在 https://ak-console.aliyun.com/#/accesskey 中可以创建。
-     * @param string $secret    指定您的secret
-     * @param string $host      指定您要访问的区域的endPoint，在控制台应用详情页中有指定
+     * @param string $secret 指定您的secret。
+     * @param string $host 指定您要访问的区域的endPoint，在控制台应用详情页中有指定。
      * @param array @options 指定一些可选参数，debug：true/false，是否开启debug模式（默认不开启），gzip:true/false 是否开启gzip压缩（默认不开启），timeout：超时时间，seconds（默认10秒）,connectTimeout: 连接超时时间，seconds(默认1秒)
+     * @return void
      */
-    public function __construct($accessKey, $secret, $host, $options = [])
+    public function __construct($accessKey, $secret, $host, $options = array())
     {
-        $args = [
+        $args = array(
             'accessKey' => trim($accessKey),
             'secret' => trim($secret),
             'host' => trim($host),
-            'options' => $options,
-        ];
+            'options' => $options
+        );
 
         if (isset($options['gzip'])) {
             $args['gzip'] = $options['gzip'];
@@ -61,7 +76,7 @@ class OpenSearchClient extends OpenSearch
         }
 
         if (isset($options['debug'])) {
-            $this->debug = (bool) $options['debug'];
+            $this->debug = (boolean) $options['debug'];
         }
 
         parent::__construct($args);
@@ -70,12 +85,11 @@ class OpenSearchClient extends OpenSearch
     /**
      * 发送一个GET请求。
      *
-     * @param string $uri    发起GET请求的uri
-     * @param array  $params 发起GET请求的参数，以param_key => param_value的方式体现
-     *
+     * @param string $uri 发起GET请求的uri。
+     * @param array $params 发起GET请求的参数，以param_key => param_value的方式体现。
      * @return \OpenSearch\Generated\Common\OpenSearchResult
      */
-    public function get($uri, $params = [])
+    public function get($uri, $params = array())
     {
         return $this->call($uri, $params, '', self::METHOD_GET);
     }
@@ -83,81 +97,76 @@ class OpenSearchClient extends OpenSearch
     /**
      * 发送一个PUT请求。
      *
-     * @param string $uri  发起PUT请求的uri
-     * @param string $body 发起PUT请求的body体，为一个原始的json格式的string
-     *
+     * @param string $uri 发起PUT请求的uri。
+     * @param string $body 发起PUT请求的body体，为一个原始的json格式的string。
      * @return \OpenSearch\Generated\Common\OpenSearchResult
      */
     public function put($uri, $body = '')
     {
-        return $this->call($uri, [], $body, self::METHOD_PUT);
+        return $this->call($uri, array(), $body, self::METHOD_PUT);
     }
 
     /**
      * 发送一个POST请求。
      *
-     * @param string $uri  发起POST请求的uri
-     * @param string $body 发起POST请求的body体，为一个原始的json格式的string
-     *
+     * @param string $uri 发起POST请求的uri。
+     * @param string $body 发起POST请求的body体，为一个原始的json格式的string。
      * @return \OpenSearch\Generated\Common\OpenSearchResult
      */
     public function post($uri, $body = '')
     {
-        return $this->call($uri, [], $body, self::METHOD_POST);
+        return $this->call($uri, array(), $body, self::METHOD_POST);
     }
 
     /**
      * 发送一个DELETE请求。
      *
-     * @param string $uri  发起DELETE请求的uri
-     * @param string $body 发起DELETE请求的body体，为一个原始的json格式的string
-     *
+     * @param string $uri 发起DELETE请求的uri。
+     * @param string $body 发起DELETE请求的body体，为一个原始的json格式的string。
      * @return \OpenSearch\Generated\Common\OpenSearchResult
      */
     public function delete($uri, $body = '')
     {
-        return $this->call($uri, [], $body, self::METHOD_DELETE);
+        return $this->call($uri, array(), $body, self::METHOD_DELETE);
     }
 
     /**
      * 发送一个PATCH请求。
      *
-     * @param string $uri  发起PATCH请求的uri
-     * @param string $body 发起PATCH请求的body体，为一个原始的json格式的string
-     *
+     * @param string $uri 发起PATCH请求的uri。
+     * @param string $body 发起PATCH请求的body体，为一个原始的json格式的string。
      * @return \OpenSearch\Generated\Common\OpenSearchResult
      */
     public function patch($uri, $body = '')
     {
-        return $this->call($uri, [], $body, self::METHOD_PATCH);
+        return $this->call($uri, array(), $body, self::METHOD_PATCH);
     }
 
     /**
      * 发送一个请求。
      *
-     * @param string $uri    发起请求的uri
-     * @param array  $params 指定的url中的query string 列表
-     * @param string $body   发起请求的body体，为一个原始的json格式的string
+     * @param string $uri 发起请求的uri。
+     * @param array $params 指定的url中的query string 列表。
+     * @param string $body 发起请求的body体，为一个原始的json格式的string。
      * @param string $method 发起请求的方法，有GET/POST/DELETE/PUT/PATCH等
-     *
      * @return \OpenSearch\Generated\Common\OpenSearchResult
      */
     public function call($uri, array $params, $body, $method)
     {
-        $path = '/v'.self::API_VERSION.'/'.self::API_TYPE."{$uri}";
-        $url = $this->host.$path;
+        $path = "/v" . self::API_VERSION . "/" . self::API_TYPE . "{$uri}";
+        $url = $this->host . $path;
 
-        $items = [];
+        $items = array();
         $items['method'] = $method;
         $items['request_path'] = $path;
-        $items['content_type'] = 'application/json';
-        $items['accept_language'] = 'zh-cn';
+        $items['content_type'] = "application/json";
+        $items['accept_language'] = "zh-cn";
         $items['date'] = gmdate('Y-m-d\TH:i:s\Z');
-        $items['opensearch_headers'] = [];
-        $items['content_md5'] = '';
+        $items['opensearch_headers'] = array();
+        $items['content_md5'] = "";
         $items['opensearch_headers']['X-Opensearch-Nonce'] = $this->_nonce();
 
-        if (self::METHOD_GET != $method) {
+        if ($method != self::METHOD_GET) {
             if (!empty($body)) {
                 $items['content_md5'] = md5($body);
                 $items['body_json'] = $body;
@@ -173,23 +182,23 @@ class OpenSearchClient extends OpenSearch
 
     private function _nonce()
     {
-        return intval(microtime(true) * 1000).mt_rand(10000, 99999);
+        return (int)(microtime(true) * 1000) . mt_rand(10000, 99999);
     }
 
     private function _signature($secret, $items)
     {
-        $params = isset($items['query_params']) ? $items['query_params'] : '';
+        $params = isset($items['query_params']) ? $items['query_params'] : "";
 
         $signature = '';
         $string = '';
-        $string .= strtoupper($items['method'])."\n";
-        $string .= $items['content_md5']."\n";
-        $string .= $items['content_type']."\n";
-        $string .= $items['date']."\n";
+        $string .= strtoupper($items['method']) . "\n";
+        $string .= $items['content_md5'] . "\n";
+        $string .= $items['content_type'] . "\n";
+        $string .= $items['date'] . "\n";
 
         $headers = self::_filter($items['opensearch_headers']);
-        foreach ($headers as $key => $value) {
-            $string .= strtolower($key).':'.$value."\n";
+        foreach($headers as $key => $value){
+          $string .= strtolower($key) . ":" . $value."\n";
         }
 
         $resource = str_replace('%2F', '/', rawurlencode($items['request_path']));
@@ -198,14 +207,13 @@ class OpenSearchClient extends OpenSearch
         $queryString = $this->_buildQuery($sortParams);
         $canonicalizedResource = $resource;
 
-        if (!empty($queryString)) {
-            $canonicalizedResource .= '?'.$queryString;
+        if(!empty($queryString)){
+          $canonicalizedResource .= '?'.$queryString;
         }
 
         $string .= $canonicalizedResource;
 
         $signature = base64_encode(hash_hmac('sha1', $string, $secret, true));
-
         return $signature;
     }
 
@@ -216,8 +224,8 @@ class OpenSearchClient extends OpenSearch
             $query = !empty($params) ? http_build_query($params, null, '&', PHP_QUERY_RFC3986) : '';
         } else {
             $arg = '';
-            while (list($key, $val) = each($params)) {
-                $arg .= rawurlencode($key).'='.rawurlencode($val).'&';
+            foreach ($params as $key => $val) {
+                $arg .= rawurlencode($key) . "=" . rawurlencode($val) . "&";
             }
             $query = substr($arg, 0, count($arg) - 2);
         }
@@ -225,34 +233,35 @@ class OpenSearchClient extends OpenSearch
         return $query;
     }
 
-    private function _filter($parameters = [])
+    private function _filter($parameters = array())
     {
-        $params = [];
-        if (!empty($parameters)) {
-            while (list($key, $val) = each($parameters)) {
-                if ('Signature' == $key || '' === $val || null === $val) {
+        $params = array();
+        if(!empty($parameters)){
+            foreach ($parameters as $key => $val) {
+                if ($key == "Signature" ||$val === "" || $val === NULL){
                     continue;
+                } else {
+                    $params[$key] = $parameters[$key];
                 }
-                $params[$key] = $parameters[$key];
             }
-            uksort($params, 'strnatcasecmp');
+
+            uksort($params,'strnatcasecmp');
             reset($params);
         }
-
         return $params;
     }
 
     private function _getHeaders($items)
     {
-        $headers = [];
+        $headers = array();
         $headers[] = 'Content-Type: '.$items['content_type'];
         $headers[] = 'Date: '.$items['date'];
         $headers[] = 'Accept-Language: '.$items['accept_language'];
         $headers[] = 'Content-Md5: '.$items['content_md5'];
         $headers[] = 'Authorization: '.$items['authorization'];
         if (is_array($items['opensearch_headers'])) {
-            foreach ($items['opensearch_headers'] as $key => $value) {
-                $headers[] = $key.': '.$value;
+            foreach($items['opensearch_headers'] as $key => $value){
+                $headers[] = $key . ": " . $value;
             }
         }
 
@@ -262,22 +271,22 @@ class OpenSearchClient extends OpenSearch
     private function _curl($url, $items)
     {
         $method = strtoupper($items['method']);
-        $options = [
+        $options = array(
             CURLOPT_HTTP_VERSION => 'CURL_HTTP_VERSION_1_1',
             CURLOPT_CONNECTTIMEOUT => $this->connectTimeout,
             CURLOPT_TIMEOUT => $this->timeout,
             CURLOPT_CUSTOMREQUEST => $method,
             CURLOPT_HEADER => false,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_USERAGENT => 'opensearch/php sdk '.self::SDK_VERSION.'/'.PHP_VERSION,
+            CURLOPT_USERAGENT => "opensearch/php sdk " . self::SDK_VERSION . "/" . PHP_VERSION,
             CURLOPT_HTTPHEADER => $this->_getHeaders($items),
-        ];
+        );
 
-        if (self::METHOD_GET == $method) {
+        if ($method == self::METHOD_GET) {
             $query = $this->_buildQuery($items['query_params']);
-            $url .= preg_match('/\?/i', $url) ? '&'.$query : '?'.$query;
-        } else {
-            if (!empty($items['body_json'])) {
+            $url .= preg_match('/\?/i', $url) ? '&' . $query : '?' . $query;
+        } else{
+            if(!empty($items['body_json'])){
                 $options[CURLOPT_POSTFIELDS] = $items['body_json'];
             }
         }
@@ -287,7 +296,7 @@ class OpenSearchClient extends OpenSearch
         }
 
         if ($this->debug) {
-            $out = fopen('php://temp', 'rw');
+            $out = fopen('php://temp','rw');
             $options[CURLOPT_VERBOSE] = true;
             $options[CURLOPT_STDERR] = $out;
         }
@@ -314,8 +323,7 @@ class OpenSearchClient extends OpenSearch
         $header = stream_get_contents($handler);
         fclose($handler);
 
-        $trace->tracer = "\n".$header;
-
+        $trace->tracer = "\n" . $header;
         return $trace;
     }
 }

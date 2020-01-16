@@ -1,18 +1,30 @@
 <?php
-
 /*
- * This file is part of the jimchen/aliyun-opensearch.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
  *
- * (c) JimChen <18219111672@163.com>
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * This source file is subject to the MIT license that is bundled.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ * @package thrift.processor
  */
 
 namespace Thrift;
 
 use Thrift\Exception\TException;
-use Thrift\Protocol\TMultiplexedProtocol;
 use Thrift\Protocol\TProtocol;
+use Thrift\Protocol\TMultiplexedProtocol;
 use Thrift\Protocol\TProtocolDecorator;
 use Thrift\Type\TMessageType;
 
@@ -37,6 +49,7 @@ use Thrift\Type\TMessageType;
  *     $processor->process($protocol, $protocol);
  * </code></blockquote>
  */
+
 class TMultiplexedProcessor
 {
     private $serviceProcessorMap_;
@@ -57,7 +70,7 @@ class TMultiplexedProcessor
     }
 
     /**
-     * This implementation of <code>process</code> performs the following steps:.
+     * This implementation of <code>process</code> performs the following steps:
      *
      * <ol>
      *     <li>Read the beginning of the message.</li>
@@ -67,9 +80,9 @@ class TMultiplexedProcessor
      *         that allows readMessageBegin() to return the original Message.</li>
      * </ol>
      *
-     * @throws TException if the message type is not CALL or ONEWAY, if
+     * @throws TException If the message type is not CALL or ONEWAY, if
      *                    the service name was not found in the message, or if the service
-     *                    name was not found in the service map
+     *                    name was not found in the service map.
      */
     public function process(TProtocol $input, TProtocol $output)
     {
@@ -80,26 +93,27 @@ class TMultiplexedProcessor
         */
         $input->readMessageBegin($fname, $mtype, $rseqid);
 
-        if (TMessageType::CALL !== $mtype && TMessageType::ONEWAY != $mtype) {
-            throw new TException('This should not have happened!?');
+        if ($mtype !== TMessageType::CALL && $mtype != TMessageType::ONEWAY) {
+            throw new TException("This should not have happened!?");
         }
 
         // Extract the service name and the new Message name.
-        if (false === strpos($fname, TMultiplexedProtocol::SEPARATOR)) {
-            throw new TException("Service name not found in message name: {$fname}. Did you ".
-                'forget to use a TMultiplexProtocol in your client?');
+        if (strpos($fname, TMultiplexedProtocol::SEPARATOR) === false) {
+            throw new TException("Service name not found in message name: {$fname}. Did you " .
+                "forget to use a TMultiplexProtocol in your client?");
         }
         list($serviceName, $messageName) = explode(':', $fname, 2);
         if (!array_key_exists($serviceName, $this->serviceProcessorMap_)) {
-            throw new TException("Service name not found: {$serviceName}.  Did you forget ".
-                'to call registerProcessor()?');
+            throw new TException("Service name not found: {$serviceName}.  Did you forget " .
+                "to call registerProcessor()?");
         }
 
         // Dispatch processing to the stored processor
         $processor = $this->serviceProcessorMap_[$serviceName];
 
         return $processor->process(
-            new StoredMessageProtocol($input, $messageName, $mtype, $rseqid), $output
+            new StoredMessageProtocol($input, $messageName, $mtype, $rseqid),
+            $output
         );
     }
 }
@@ -111,22 +125,20 @@ class TMultiplexedProcessor
  */
 class StoredMessageProtocol extends TProtocolDecorator
 {
-    private $fname_;
-    private $mtype_;
-    private $rseqid_;
+    private $fname_, $mtype_, $rseqid_;
 
     public function __construct(TProtocol $protocol, $fname, $mtype, $rseqid)
     {
         parent::__construct($protocol);
-        $this->fname_ = $fname;
-        $this->mtype_ = $mtype;
+        $this->fname_  = $fname;
+        $this->mtype_  = $mtype;
         $this->rseqid_ = $rseqid;
     }
 
     public function readMessageBegin(&$name, &$type, &$seqid)
     {
-        $name = $this->fname_;
-        $type = $this->mtype_;
+        $name  = $this->fname_;
+        $type  = $this->mtype_;
         $seqid = $this->rseqid_;
     }
 }

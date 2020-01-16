@@ -1,11 +1,21 @@
 <?php
-
 /*
- * This file is part of the jimchen/aliyun-opensearch.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- * (c) JimChen <18219111672@163.com>
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * This source file is subject to the MIT license that is bundled.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 namespace OpenSearch\Util;
@@ -62,7 +72,7 @@ class ClauseParamsBuilder
 
     private $params;
 
-    private $clauses = [];
+    private $clauses = array();
 
     public function __construct($params)
     {
@@ -71,31 +81,31 @@ class ClauseParamsBuilder
 
     private function buildConfigClause()
     {
-        $config = [];
+        $config = array();
         if (isset($this->params->config->start)) {
-            $config[] = Constant::get(self::CONFIG_CLAUSE_START).
-                self::CLAUSE_CONFIG_KV_SEPARATOR.$this->params->config->start;
+            $config[] = Constant::get(self::CONFIG_CLAUSE_START) .
+                self::CLAUSE_CONFIG_KV_SEPARATOR . $this->params->config->start;
         }
 
         if (isset($this->params->config->hits)) {
-            $config[] = Constant::get(self::CONFIG_CLAUSE_HIT).
-                self::CLAUSE_CONFIG_KV_SEPARATOR.$this->params->config->hits;
+            $config[] = Constant::get(self::CONFIG_CLAUSE_HIT) .
+                self::CLAUSE_CONFIG_KV_SEPARATOR . $this->params->config->hits;
         }
 
         if (isset($this->params->config->searchFormat)) {
             $format = $this->params->config->searchFormat;
-            $config[] = Constant::get(self::CONFIG_CLAUSE_FORMAT).
-                self::CLAUSE_CONFIG_KV_SEPARATOR.strtolower(searchFormat::$__names[$format]);
+            $config[] = Constant::get(self::CONFIG_CLAUSE_FORMAT) .
+                self::CLAUSE_CONFIG_KV_SEPARATOR . strtolower(searchFormat::$__names[$format]);
         }
 
         if (isset($this->params->rank->reRankSize)) {
-            $config[] = Constant::get(self::CONFIG_CLAUSE_RERANK_SIZE).
-                self::CLAUSE_CONFIG_KV_SEPARATOR.$this->params->rank->reRankSize;
+            $config[] = Constant::get(self::CONFIG_CLAUSE_RERANK_SIZE) .
+                self::CLAUSE_CONFIG_KV_SEPARATOR . $this->params->rank->reRankSize;
         }
 
         if (isset($this->params->config->customConfig)) {
             foreach ($this->params->config->customConfig as $k => $v) {
-                $config[] = $k.self::CLAUSE_CONFIG_KV_SEPARATOR.$v;
+                $config[] = $k . self::CLAUSE_CONFIG_KV_SEPARATOR . $v;
             }
         }
 
@@ -104,19 +114,19 @@ class ClauseParamsBuilder
 
     private function buildQueryClause()
     {
-        if (null !== $this->params->query) {
+        if ($this->params->query !== null) {
             $this->clauses[self::QUERY_KEY] = $this->params->query;
         }
     }
 
     private function buildSortClause()
     {
-        $sorts = [];
+        $sorts = array();
         if (isset($this->params->sort->sortFields)) {
             foreach ($this->params->sort->sortFields as $sortField) {
                 $order = $sortField->order;
                 $orderString = Order::$__names[$order];
-                $sorts[] = Constant::get('SORT_CLAUSE_'.$orderString).$sortField->field;
+                $sorts[] = Constant::get('SORT_CLAUSE_' . $orderString) . $sortField->field;
             }
 
             $this->clauses[self::SORT_KEY] = implode(self::CLAUSE_SORT_SEPARATOR, $sorts);
@@ -132,29 +142,26 @@ class ClauseParamsBuilder
 
     private function buildDistinctClause()
     {
-        $distincts = [];
+        $distincts = array();
         if (isset($this->params->distincts)) {
-            $keys = [
+            $keys = array(
                 'key' => self::DISTINCT_CLAUSE_DIST_KEY,
                 'distCount' => self::DISTINCT_CLAUSE_DIST_COUNT,
                 'distTimes' => self::DISTINCT_CLAUSE_DIST_TIMES,
                 'reserved' => self::DISTINCT_CLAUSE_RESERVED,
                 'distFilter' => self::DISTINCT_CLAUSE_DIST_FILTER,
                 'updateTotalHit' => self::DISTINCT_CLAUSE_UPDATE_TOTAL_HIT,
-                'grade' => self::DISTINCT_CLAUSE_GRADE,
-            ];
+                'grade' => self::DISTINCT_CLAUSE_GRADE
+            );
             foreach ($this->params->distincts as $distinct) {
                 if (!isset($distinct->key)) {
                     continue;
                 }
 
-                $dist = [];
+                $dist = array();
                 foreach ($keys as $k => $v) {
-                    if (isset($distinct->$k)) {
-                        if (is_bool($distinct->$k)) {
-                            $distinct->$k = $distinct->$k ? 'true' : 'false';
-                        }
-                        $dist[] = Constant::get($v).self::CLAUSE_AGGREGATE_KV_SEPARATOR.$distinct->$k;
+                    if ($distinct->$k) {
+                        $dist[] = Constant::get($v) . self::CLAUSE_AGGREGATE_KV_SEPARATOR . $distinct->$k;
                     }
                 }
 
@@ -167,27 +174,27 @@ class ClauseParamsBuilder
 
     private function buildAggregateClause()
     {
-        $aggregates = [];
+        $aggregates = array();
         if (isset($this->params->aggregates)) {
-            $keys = [
+            $keys = array(
                 'groupKey' => self::AGGREGATE_CLAUSE_GROUP_KEY,
                 'aggFun' => self::AGGREGATE_CLAUSE_AGG_FUN,
                 'range' => self::AGGREGATE_CLAUSE_RANGE,
                 'maxGroup' => self::AGGREGATE_CLAUSE_MAX_GROUP,
                 'aggFilter' => self::AGGREGATE_CLAUSE_AGG_FILTER,
                 'aggSamplerThresHold' => self::AGGREGATE_CLAUSE_AGG_SAMPLER_THRESHOLD,
-                'aggSamplerStep' => self::AGGREGATE_CLAUSE_AGG_SAMPLER_STEP,
-            ];
+                'aggSamplerStep' => self::AGGREGATE_CLAUSE_AGG_SAMPLER_STEP
+            );
 
             foreach ($this->params->aggregates as $aggregate) {
                 if (!isset($aggregate->groupKey) || !isset($aggregate->aggFun)) {
                     continue;
                 }
 
-                $agg = [];
+                $agg = array();
                 foreach ($keys as $k => $v) {
                     if (isset($aggregate->$k)) {
-                        $agg[] = Constant::get($v).self::CLAUSE_AGGREGATE_KV_SEPARATOR.$aggregate->$k;
+                        $agg[] = Constant::get($v) . self::CLAUSE_AGGREGATE_KV_SEPARATOR . $aggregate->$k;
                     }
                 }
 
@@ -215,9 +222,9 @@ class ClauseParamsBuilder
         $this->buildAggregateClause();
         $this->buildKVPairsClause();
 
-        $clauses = [];
+        $clauses = array();
         foreach ($this->clauses as $clauseKey => $value) {
-            $clauses[] = $clauseKey.self::KV_SEPARATOR.$value;
+            $clauses[] = $clauseKey . self::KV_SEPARATOR . $value;
         }
 
         return implode(self::CLAUSE_SEPARATOR, $clauses);
