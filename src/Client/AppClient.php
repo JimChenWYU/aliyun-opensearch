@@ -1,11 +1,21 @@
 <?php
-
 /*
- * This file is part of the jimchen/aliyun-opensearch.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- * (c) JimChen <18219111672@163.com>
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * This source file is subject to the MIT license that is bundled.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 namespace OpenSearch\Client;
@@ -19,17 +29,20 @@ use OpenSearch\Generated\Common\Pageable;
  * 管理应用的基本信息，包含创建应用(save)、修改应用(updateById)、删除应用(removeById)
  * 、获取应用的基本详情(getById)、获取应用列表(listAll)、给应用导入全量数据(reindexById)
  * 等方法。
+ *
  */
 class AppClient implements AppServiceIf
 {
+
     private $openSearchClient = null;
 
-    private $path = '/apps';
+    private $path = "/apps";
 
     /**
      * 构造方法。
      *
-     * @param \OpenSearch\Client\OpenSearchClient $openSearchClient 基础类，负责计算签名，和服务端进行交互和返回结果
+     * @param \OpenSearch\Client\OpenSearchClient $openSearchClient 基础类，负责计算签名，和服务端进行交互和返回结果。
+     * @return void
      */
     public function __construct($openSearchClient)
     {
@@ -43,8 +56,7 @@ class AppClient implements AppServiceIf
      *
      * > 创建版本的个数依赖服务端的限制。
      *
-     * @param string $app 要创建的应用主体JSON，包含name、type、schema、quota、first_ranks、second_ranks、summary、data_sources、suggest、fetch_fields、query_processors等信息
-     *
+     * @param string $app 要创建的应用主体JSON，包含name、type、schema、quota、first_ranks、second_ranks、summary、data_sources、suggest、fetch_fields、query_processors等信息。
      * @return \OpenSearch\Generated\Common\OpenSearchResult OpenSearchResult类
      */
     public function save($app)
@@ -55,28 +67,25 @@ class AppClient implements AppServiceIf
     /**
      * 通过应用名称或者应用ID获取一个应用的详情信息。
      *
-     * @param string $identity 要查询的应用名称或者应用ID，如果应用有多个版本，则指定应用名称为当前应用的在线版本
-     *
+     * @param string $identity 要查询的应用名称或者应用ID，如果应用有多个版本，则指定应用名称为当前应用的在线版本。
      * @return \OpenSearch\Generated\Common\OpenSearchResult
      */
     public function getById($identity)
     {
-        $path = $this->path.'/'.$identity;
-
+        $path = $this->path . "/" . $identity;
         return $this->openSearchClient->get($path);
     }
 
     /**
      * 获取应用列表。
      *
-     * @param \OpenSearch\Generated\Common\Pageable $pageable 分页信息，包含页码和每页展示条数
-     *
+     * @param \OpenSearch\Generated\Common\Pageable $pageable 分页信息，包含页码和每页展示条数。
      * @return \OpenSearch\Generated\Common\OpenSearchResult
      */
     public function listAll(Pageable $pageable)
     {
         return $this->openSearchClient->get(
-            $this->path, ['page' => $pageable->page, 'size' => $pageable->size]
+            $this->path, array('page' => $pageable->page, 'size' => $pageable->size)
         );
     }
 
@@ -86,29 +95,25 @@ class AppClient implements AppServiceIf
      * 如果当前应用只有一个版本，则会删除这个应用的整个分组；
      * 如果当前应用分组有多个应用，则需要当前要删除的版本不能处于在线状态。
      *
-     * @param string $identity 指定的应用ID或者应用名称
-     *
+     * @param string $identity 指定的应用ID或者应用名称。
      * @return \OpenSearch\Generated\Common\OpenSearchResult
      */
     public function removeById($identity)
     {
-        $path = $this->path.'/'.$identity;
-
+        $path = $this->path . "/" . $identity;
         return $this->openSearchClient->delete($path);
     }
 
     /**
      * 更新某个应用的信息。
      *
-     * @param string $identity 指定的应用ID或者应用名称；当指定的为应用名称，则表示指定的为当前应用分组中的在线的应用
-     * @param string $app      修改一个应用的应用结构json，包含name、type、schema、quota、first_ranks、second_ranks、summary、data_sources、suggest、fetch_fields、query_processors等信息
-     *
+     * @param string $identity 指定的应用ID或者应用名称；当指定的为应用名称，则表示指定的为当前应用分组中的在线的应用。
+     * @param string $app 修改一个应用的应用结构json，包含name、type、schema、quota、first_ranks、second_ranks、summary、data_sources、suggest、fetch_fields、query_processors等信息。
      * @return \OpenSearch\Generated\Common\OpenSearchResult
      */
     public function updateById($identity, $app)
     {
-        $path = $this->path.'/'.$identity;
-
+        $path = $this->path . "/" . $identity;
         return $this->openSearchClient->patch($path, $app);
     }
 
@@ -116,13 +121,11 @@ class AppClient implements AppServiceIf
      * 在创建过程中全量导入数据。
      *
      * @param string $identity 指定的应用ID或者应用名称；当指定的为应用名称，则表示指定的为当前应用分组中的在线的应用。。
-     *
      * @return \OpenSearch\Generated\Common\OpenSearchResult
      */
     public function reindexById($identity)
     {
-        $path = $this->path."/{$identity}/actions/reindex";
-
+        $path = $this->path . "/{$identity}/actions/reindex";
         return $this->openSearchClient->post($path);
     }
 }

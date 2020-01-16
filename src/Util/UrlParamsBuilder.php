@@ -1,20 +1,32 @@
 <?php
-
 /*
- * This file is part of the jimchen/aliyun-opensearch.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- * (c) JimChen <18219111672@163.com>
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * This source file is subject to the MIT license that is bundled.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 namespace OpenSearch\Util;
 
 use OpenSearch\Generated\Search\Constant;
 use OpenSearch\Generated\Search\DeepPaging;
+use OpenSearch\Generated\Search\SearchType;
 
 class UrlParamsBuilder
 {
+
     const QUERY = 'query';
     const FORMAT = 'format';
     const FIRST_RANK_NAME = 'first_rank_name';
@@ -38,17 +50,19 @@ class UrlParamsBuilder
 
     const SEARCH_TYPE_SCAN = 'scan';
 
-    private static $summaryKeys = [
+    const ABTEST = "abtest";
+
+    private static $summaryKeys = array(
         'summary_field' => 'SUMMARY_PARAM_SUMMARY_FIELD',
         'summary_len' => 'SUMMARY_PARAM_SUMMARY_LEN',
         'summary_ellipsis' => 'SUMMARY_PARAM_SUMMARY_ELLIPSIS',
         'summary_snippet' => 'SUMMARY_PARAM_SUMMARY_SNIPPET',
         'summary_element' => 'SUMMARY_PARAM_SUMMARY_ELEMENT',
         'summary_element_prefix' => 'SUMMARY_PARAM_SUMMARY_ELEMENT_PREFIX',
-        'summary_element_postfix' => 'SUMMARY_PARAM_SUMMARY_ELEMENT_POSTFIX',
-    ];
+        'summary_element_postfix' => 'SUMMARY_PARAM_SUMMARY_ELEMENT_POSTFIX'
+    );
 
-    private $params = [];
+    private $params = array();
 
     public function __construct($searchParams)
     {
@@ -66,6 +80,9 @@ class UrlParamsBuilder
         $this->initDisableFunctions($searchParams);
         $this->initRouteValue($searchParams);
         $this->initCustomParams($searchParams);
+        $this->initAbtest($searchParams);
+        $this->initUserId($searchParams);
+        $this->initRawQuery($searchParams);
     }
 
     public function initScroll($searchParams)
@@ -107,16 +124,16 @@ class UrlParamsBuilder
     public function initSummary($searchParams)
     {
         if (isset($searchParams->summaries)) {
-            $summaries = [];
+            $summaries = array();
             foreach ($searchParams->summaries as $summary) {
                 if (!isset($summary->summary_field)) {
                     continue;
                 }
 
-                $sum = [];
+                $sum = array();
                 foreach (self::$summaryKeys as $k => $v) {
                     if (isset($summary->$k)) {
-                        $sum[] = Constant::get($v).self::SUMMARY_KV_SEPARATOR.$summary->$k;
+                        $sum[] = Constant::get($v) . self::SUMMARY_KV_SEPARATOR . $summary->$k;
                     }
                 }
 
@@ -151,6 +168,39 @@ class UrlParamsBuilder
     {
         if (isset($searchParams->customParam)) {
             $this->params = array_merge($this->params, $searchParams->customParam);
+        }
+    }
+
+    public function initAbtest($searchParams)
+    {
+        if (isset($searchParams->abtest)) {
+            $abtestParams = array();
+
+            if (isset($searchParams->abtest->sceneTag)) {
+                $abtestParams[] = sprintf("%s:%s", Constant::get('ABTEST_PARAM_SCENE_TAG'), $searchParams->abtest->sceneTag);
+            }
+
+            if (isset($searchParams->abtest->flowDivider)) {
+                $abtestParams[] = sprintf("%s:%s", Constant::get('ABTEST_PARAM_FLOW_DIVIDER'), $searchParams->abtest->flowDivider);
+            }
+
+            if (!empty($abtestParams)) {
+                $this->params[self::ABTEST] = implode(",", $abtestParams);
+            }
+        }
+    }
+
+    public function initUserId($searchParams)
+    {
+        if (isset($searchParams->userId)) {
+            $this->params[Constant::get('USER_ID')] = $searchParams->userId;
+        }
+    }
+
+    public function initRawQuery($searchParams)
+    {
+        if (isset($searchParams->rawQuery)) {
+            $this->params[Constant::get('RAW_QUERY')] = $searchParams->rawQuery;
         }
     }
 

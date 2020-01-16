@@ -1,43 +1,39 @@
 <?php
 
-/*
- * This file is part of the jimchen/aliyun-opensearch.
- *
- * (c) JimChen <18219111672@163.com>
- *
- * This source file is subject to the MIT license that is bundled.
- */
-
 namespace Thrift\Server;
 
+use Thrift\Transport\TTransport;
 use Thrift\Exception\TException;
 use Thrift\Exception\TTransportException;
-use Thrift\Transport\TTransport;
 
 /**
  * A forking implementation of a Thrift server.
+ *
+ * @package thrift.server
  */
 class TForkingServer extends TServer
 {
-    /**
-     * Flag for the main serving loop.
-     *
-     * @var bool
-     */
+  /**
+   * Flag for the main serving loop
+   *
+   * @var bool
+   */
     private $stop_ = false;
 
-    /**
-     * List of children.
-     *
-     * @var array
-     */
-    protected $children_ = [];
+  /**
+   * List of children.
+   *
+   * @var array
+   */
+    protected $children_ = array();
 
-    /**
-     * Listens for new client using the supplied
-     * transport. We fork when a new connection
-     * arrives.
-     */
+  /**
+   * Listens for new client using the supplied
+   * transport. We fork when a new connection
+   * arrives.
+   *
+   * @return void
+   */
     public function serve()
     {
         $this->transport_->listen();
@@ -46,12 +42,12 @@ class TForkingServer extends TServer
             try {
                 $transport = $this->transport_->accept();
 
-                if (null != $transport) {
+                if ($transport != null) {
                     $pid = pcntl_fork();
 
                     if ($pid > 0) {
                         $this->handleParent($transport, $pid);
-                    } elseif (0 === $pid) {
+                    } elseif ($pid === 0) {
                         $this->handleChild($transport);
                     } else {
                         throw new TException('Failed to fork');
@@ -64,22 +60,24 @@ class TForkingServer extends TServer
         }
     }
 
-    /**
-     * Code run by the parent.
-     *
-     * @param TTransport $transport
-     * @param int        $pid
-     */
+  /**
+   * Code run by the parent
+   *
+   * @param TTransport $transport
+   * @param int $pid
+   * @return void
+   */
     private function handleParent(TTransport $transport, $pid)
     {
         $this->children_[$pid] = $transport;
     }
 
-    /**
-     * Code run by the child.
-     *
-     * @param TTransport $transport
-     */
+  /**
+   * Code run by the child.
+   *
+   * @param TTransport $transport
+   * @return void
+   */
     private function handleChild(TTransport $transport)
     {
         try {
@@ -96,9 +94,11 @@ class TForkingServer extends TServer
         exit(0);
     }
 
-    /**
-     * Collects any children we may have.
-     */
+  /**
+   * Collects any children we may have
+   *
+   * @return void
+   */
     private function collectChildren()
     {
         foreach ($this->children_ as $pid => $transport) {
@@ -111,10 +111,12 @@ class TForkingServer extends TServer
         }
     }
 
-    /**
-     * Stops the server running. Kills the transport
-     * and then stops the main serving loop.
-     */
+  /**
+   * Stops the server running. Kills the transport
+   * and then stops the main serving loop
+   *
+   * @return void
+   */
     public function stop()
     {
         $this->transport_->close();

@@ -1,21 +1,34 @@
 <?php
 
 /*
- * This file is part of the jimchen/aliyun-opensearch.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
  *
- * (c) JimChen <18219111672@163.com>
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * This source file is subject to the MIT license that is bundled.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ * @package thrift.protocol
  */
 
 namespace Thrift\Protocol;
 
+use Thrift\Type\TType;
 use Thrift\Exception\TProtocolException;
 use Thrift\Protocol\JSON\BaseContext;
-use Thrift\Protocol\JSON\ListContext;
 use Thrift\Protocol\JSON\LookaheadReader;
 use Thrift\Protocol\JSON\PairContext;
-use Thrift\Type\TType;
+use Thrift\Protocol\JSON\ListContext;
 
 /**
  * JSON implementation of thrift protocol, ported from Java.
@@ -36,30 +49,30 @@ class TJSONProtocol extends TProtocol
 
     const VERSION = 1;
 
-    public static $JSON_CHAR_TABLE = [
+    public static $JSON_CHAR_TABLE = array(
         /*  0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F */
         0, 0, 0, 0, 0, 0, 0, 0, 'b', 't', 'n', 0, 'f', 'r', 0, 0, // 0
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 1
         1, 1, '"', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 2
-    ];
+    );
 
-    public static $ESCAPE_CHARS = ['"', '\\', '/', 'b', 'f', 'n', 'r', 't'];
+    public static $ESCAPE_CHARS = array('"', '\\', '/', "b", "f", "n", "r", "t");
 
-    public static $ESCAPE_CHAR_VALS = [
+    public static $ESCAPE_CHAR_VALS = array(
         '"', '\\', '/', "\x08", "\f", "\n", "\r", "\t",
-    ];
+    );
 
-    const NAME_BOOL = 'tf';
-    const NAME_BYTE = 'i8';
-    const NAME_I16 = 'i16';
-    const NAME_I32 = 'i32';
-    const NAME_I64 = 'i64';
-    const NAME_DOUBLE = 'dbl';
-    const NAME_STRUCT = 'rec';
-    const NAME_STRING = 'str';
-    const NAME_MAP = 'map';
-    const NAME_LIST = 'lst';
-    const NAME_SET = 'set';
+    const NAME_BOOL = "tf";
+    const NAME_BYTE = "i8";
+    const NAME_I16 = "i16";
+    const NAME_I32 = "i32";
+    const NAME_I64 = "i64";
+    const NAME_DOUBLE = "dbl";
+    const NAME_STRUCT = "rec";
+    const NAME_STRING = "str";
+    const NAME_MAP = "map";
+    const NAME_LIST = "lst";
+    const NAME_SET = "set";
 
     private function getTypeNameForTypeID($typeID)
     {
@@ -87,7 +100,7 @@ class TJSONProtocol extends TProtocol
             case TType::LST:
                 return self::NAME_LIST;
             default:
-                throw new TProtocolException('Unrecognized type', TProtocolException::UNKNOWN);
+                throw new TProtocolException("Unrecognized type", TProtocolException::UNKNOWN);
         }
     }
 
@@ -126,9 +139,9 @@ class TJSONProtocol extends TProtocol
                     $result = TType::STRUCT;
                     break;
                 case 's':
-                    if ('t' == substr($name, 1, 1)) {
+                    if (substr($name, 1, 1) == 't') {
                         $result = TType::STRING;
-                    } elseif ('e' == substr($name, 1, 1)) {
+                    } elseif (substr($name, 1, 1) == 'e') {
                         $result = TType::SET;
                     }
                     break;
@@ -137,14 +150,14 @@ class TJSONProtocol extends TProtocol
                     break;
             }
         }
-        if (TType::STOP == $result) {
-            throw new TProtocolException('Unrecognized type', TProtocolException::INVALID_DATA);
+        if ($result == TType::STOP) {
+            throw new TProtocolException("Unrecognized type", TProtocolException::INVALID_DATA);
         }
 
         return $result;
     }
 
-    public $contextStack_ = [];
+    public $contextStack_ = array();
     public $context_;
     public $reader_;
 
@@ -168,29 +181,29 @@ class TJSONProtocol extends TProtocol
 
     public function reset()
     {
-        $this->contextStack_ = [];
+        $this->contextStack_ = array();
         $this->context_ = new BaseContext();
         $this->reader_ = new LookaheadReader($this);
     }
 
-    private $tmpbuf_ = [4];
+    private $tmpbuf_ = array(4);
 
     public function readJSONSyntaxChar($b)
     {
         $ch = $this->reader_->read();
 
         if (substr($ch, 0, 1) != $b) {
-            throw new TProtocolException('Unexpected character: '.$ch, TProtocolException::INVALID_DATA);
+            throw new TProtocolException("Unexpected character: " . $ch, TProtocolException::INVALID_DATA);
         }
     }
 
     private function hexVal($s)
     {
-        for ($i = 0; $i < strlen($s); ++$i) {
+        for ($i = 0; $i < strlen($s); $i++) {
             $ch = substr($s, $i, 1);
 
-            if (!($ch >= 'a' && $ch <= 'f') && !($ch >= '0' && $ch <= '9')) {
-                throw new TProtocolException('Expected hex character '.$ch, TProtocolException::INVALID_DATA);
+            if (!($ch >= "a" && $ch <= "f") && !($ch >= "0" && $ch <= "9")) {
+                throw new TProtocolException("Expected hex character " . $ch, TProtocolException::INVALID_DATA);
             }
         }
 
@@ -225,18 +238,24 @@ class TJSONProtocol extends TProtocol
          * High surrogate: 0xD800 - 0xDBFF
          * Low surrogate: 0xDC00 - 0xDFFF
          */
-        $json = preg_replace_callback('/\\\\u(d[89ab][0-9a-f]{2})\\\\u(d[cdef][0-9a-f]{2})/i',
+        $json = preg_replace_callback(
+            '/\\\\u(d[89ab][0-9a-f]{2})\\\\u(d[cdef][0-9a-f]{2})/i',
             function ($matches) {
                 return mb_convert_encoding(pack('H*', $matches[1].$matches[2]), 'UTF-8', 'UTF-16BE');
-            }, $json);
+            },
+            $json
+        );
 
         /*
          * Unescaped characters within the Basic Multilingual Plane
          */
-        $json = preg_replace_callback('/\\\\u([0-9a-f]{4})/i',
+        $json = preg_replace_callback(
+            '/\\\\u([0-9a-f]{4})/i',
             function ($matches) {
                 return mb_convert_encoding(pack('H*', $matches[1]), 'UTF-8', 'UTF-16BE');
-            }, $json);
+            },
+            $json
+        );
 
         return $json;
     }
@@ -331,12 +350,12 @@ class TJSONProtocol extends TProtocol
         while (true) {
             $ch = $this->reader_->read();
             $jsonString .= $ch;
-            if (self::QUOTE == $ch &&
-          null !== $lastChar &&
-            self::ESCSEQ !== $lastChar) {
+            if ($ch == self::QUOTE &&
+            $lastChar !== null &&
+            $lastChar !== self::ESCSEQ) {
                 break;
             }
-            if (self::ESCSEQ == $ch && self::ESCSEQ == $lastChar) {
+            if ($ch == self::ESCSEQ && $lastChar == self::ESCSEQ) {
                 $lastChar = self::DOUBLEESC;
             } else {
                 $lastChar = $ch;
@@ -364,15 +383,15 @@ class TJSONProtocol extends TProtocol
             case '9':
             case 'E':
             case 'e':
-              return true;
-            }
+                return true;
+        }
 
         return false;
     }
 
     private function readJSONNumericChars()
     {
-        $strbld = [];
+        $strbld = array();
 
         while (true) {
             $ch = $this->reader_->peek();
@@ -384,7 +403,7 @@ class TJSONProtocol extends TProtocol
             $strbld[] = $this->reader_->read();
         }
 
-        return implode('', $strbld);
+        return implode("", $strbld);
     }
 
     private function readJSONInteger()
@@ -402,7 +421,7 @@ class TJSONProtocol extends TProtocol
         }
 
         if (!is_numeric($str)) {
-            throw new TProtocolException('Invalid data in numeric: '.$str, TProtocolException::INVALID_DATA);
+            throw new TProtocolException("Invalid data in numeric: " . $str, TProtocolException::INVALID_DATA);
         }
 
         return intval($str);
@@ -429,7 +448,7 @@ class TJSONProtocol extends TProtocol
         }
 
         if (!is_numeric($str)) {
-            throw new TProtocolException('Invalid data in numeric: '.$str, TProtocolException::INVALID_DATA);
+            throw new TProtocolException("Invalid data in numeric: " . $str, TProtocolException::INVALID_DATA);
         }
 
         return $str;
@@ -439,25 +458,28 @@ class TJSONProtocol extends TProtocol
     {
         $this->context_->read();
 
-        if (self::QUOTE == substr($this->reader_->peek(), 0, 1)) {
+        if (substr($this->reader_->peek(), 0, 1) == self::QUOTE) {
             $arr = $this->readJSONString(true);
 
-            if ('NaN' == $arr) {
+            if ($arr == "NaN") {
                 return NAN;
-            } elseif ('Infinity' == $arr) {
+            } elseif ($arr == "Infinity") {
                 return INF;
             } elseif (!$this->context_->escapeNum()) {
-                throw new TProtocolException('Numeric data unexpectedly quoted '.$arr,
-                                              TProtocolException::INVALID_DATA);
+                throw new TProtocolException(
+                    "Numeric data unexpectedly quoted " . $arr,
+                    TProtocolException::INVALID_DATA
+                );
             }
 
             return floatval($arr);
-        }
-        if ($this->context_->escapeNum()) {
-            $this->readJSONSyntaxChar(self::QUOTE);
-        }
+        } else {
+            if ($this->context_->escapeNum()) {
+                $this->readJSONSyntaxChar(self::QUOTE);
+            }
 
-        return floatval($this->readJSONNumericChars());
+            return floatval($this->readJSONNumericChars());
+        }
     }
 
     private function readJSONBase64()
@@ -465,8 +487,8 @@ class TJSONProtocol extends TProtocol
         $arr = $this->readJSONString(false);
         $data = base64_decode($arr, true);
 
-        if (false === $data) {
-            throw new TProtocolException('Invalid base64 data '.$arr, TProtocolException::INVALID_DATA);
+        if ($data === false) {
+            throw new TProtocolException("Invalid base64 data " . $arr, TProtocolException::INVALID_DATA);
         }
 
         return $data;
@@ -499,7 +521,7 @@ class TJSONProtocol extends TProtocol
     }
 
     /**
-     * Writes the message header.
+     * Writes the message header
      *
      * @param string $name  Function name
      * @param int    $type  message type TMessageType::CALL or TMessageType::REPLY
@@ -515,7 +537,7 @@ class TJSONProtocol extends TProtocol
     }
 
     /**
-     * Close the message.
+     * Close the message
      */
     public function writeMessageEnd()
     {
@@ -525,11 +547,9 @@ class TJSONProtocol extends TProtocol
     /**
      * Writes a struct header.
      *
-     * @param string $name Struct name
-     *
+     * @param  string     $name Struct name
      * @throws TException on write error
-     *
-     * @return int How many bytes written
+     * @return int        How many bytes written
      */
     public function writeStructBegin($name)
     {
@@ -540,8 +560,7 @@ class TJSONProtocol extends TProtocol
      * Close a struct.
      *
      * @throws TException on write error
-     *
-     * @return int How many bytes written
+     * @return int        How many bytes written
      */
     public function writeStructEnd()
     {
@@ -639,7 +658,7 @@ class TJSONProtocol extends TProtocol
     }
 
     /**
-     * Reads the message header.
+     * Reads the message header
      *
      * @param string $name Function name
      * @param int    $type message type TMessageType::CALL or TMessageType::REPLY
@@ -649,8 +668,8 @@ class TJSONProtocol extends TProtocol
     {
         $this->readJSONArrayStart();
 
-        if (self::VERSION != $this->readJSONInteger()) {
-            throw new TProtocolException('Message contained bad version', TProtocolException::BAD_VERSION);
+        if ($this->readJSONInteger() != self::VERSION) {
+            throw new TProtocolException("Message contained bad version", TProtocolException::BAD_VERSION);
         }
 
         $name = $this->readJSONString(false);
@@ -661,7 +680,7 @@ class TJSONProtocol extends TProtocol
     }
 
     /**
-     * Read the close of message.
+     * Read the close of message
      */
     public function readMessageEnd()
     {
@@ -683,9 +702,9 @@ class TJSONProtocol extends TProtocol
     public function readFieldBegin(&$name, &$fieldType, &$fieldId)
     {
         $ch = $this->reader_->peek();
-        $name = '';
+        $name = "";
 
-        if (self::RBRACE == substr($ch, 0, 1)) {
+        if (substr($ch, 0, 1) == self::RBRACE) {
             $fieldType = TType::STOP;
         } else {
             $fieldId = $this->readJSONInteger();
@@ -744,7 +763,7 @@ class TJSONProtocol extends TProtocol
 
     public function readBool(&$bool)
     {
-        $bool = 0 == $this->readJSONInteger() ? false : true;
+        $bool = $this->readJSONInteger() == 0 ? false : true;
 
         return true;
     }

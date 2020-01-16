@@ -1,11 +1,23 @@
 <?php
-
 /*
- * This file is part of the jimchen/aliyun-opensearch.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
  *
- * (c) JimChen <18219111672@163.com>
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * This source file is subject to the MIT license that is bundled.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ * @package thrift.transport
  */
 
 namespace Thrift\Transport;
@@ -15,7 +27,9 @@ use Thrift\Factory\TStringFuncFactory;
 
 /**
  * Php stream transport. Reads to and writes from the php standard streams
- * php://input and php://output.
+ * php://input and php://output
+ *
+ * @package thrift.transport
  */
 class TPhpStream extends TTransport
 {
@@ -67,14 +81,14 @@ class TPhpStream extends TTransport
     public function isOpen()
     {
         return
-      (!$this->read_ || is_resource($this->inStream_)) &&
-      (!$this->write_ || is_resource($this->outStream_));
+        (!$this->read_ || is_resource($this->inStream_)) &&
+        (!$this->write_ || is_resource($this->outStream_));
     }
 
     public function read($len)
     {
         $data = @fread($this->inStream_, $len);
-        if (false === $data || '' === $data) {
+        if ($data === false || $data === '') {
             throw new TException('TPhpStream: Could not read '.$len.' bytes');
         }
 
@@ -85,7 +99,7 @@ class TPhpStream extends TTransport
     {
         while (TStringFuncFactory::create()->strlen($buf) > 0) {
             $got = @fwrite($this->outStream_, $buf);
-            if (0 === $got || false === $got) {
+            if ($got === 0 || $got === false) {
                 throw new TException('TPhpStream: Could not write '.TStringFuncFactory::create()->strlen($buf).' bytes');
             }
             $buf = TStringFuncFactory::create()->substr($buf, $got);
@@ -99,7 +113,7 @@ class TPhpStream extends TTransport
 
     private static function inStreamName()
     {
-        if ('cli' == php_sapi_name()) {
+        if (php_sapi_name() == 'cli') {
             return 'php://stdin';
         }
 

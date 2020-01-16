@@ -1,39 +1,55 @@
 <?php
-
 /*
- * This file is part of the jimchen/aliyun-opensearch.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- * (c) JimChen <18219111672@163.com>
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * This source file is subject to the MIT license that is bundled.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 namespace OpenSearch\Util;
 
 use OpenSearch\Generated\Search\Aggregate;
-use OpenSearch\Generated\Search\Config;
-use OpenSearch\Generated\Search\DeepPaging;
 use OpenSearch\Generated\Search\Distinct;
+use OpenSearch\Generated\Search\Config;
+use OpenSearch\Generated\Search\Constant;
+use OpenSearch\Generated\Search\Order;
+use OpenSearch\Generated\Search\Rank;
 use OpenSearch\Generated\Search\SearchFormat;
 use OpenSearch\Generated\Search\SearchParams;
 use OpenSearch\Generated\Search\Sort;
 use OpenSearch\Generated\Search\SortField;
 use OpenSearch\Generated\Search\Summary;
+use OpenSearch\Generated\Search\DeepPaging;
+use OpenSearch\Generated\Search\Abtest;
 
 /**
  * 搜索配置项。
  */
 class SearchParamsBuilder
 {
+
     const SORT_INCREASE = 1;
     const SORT_DECREASE = 0;
 
     private $searchParams;
 
-    public function __construct($opts = [])
+    public function __construct($opts = array())
     {
+
         $config = new Config();
-        $this->searchParams = new SearchParams(['config' => $config]);
+        $this->searchParams = new SearchParams(array('config' => $config));
 
         if (isset($opts['start'])) {
             $this->setStart($opts['start']);
@@ -80,7 +96,7 @@ class SearchParamsBuilder
         if (isset($opts['sort']) && is_array($opts['sort'])) {
             foreach ($opts['sort'] as $sort) {
                 if (!isset($sort['order'])) {
-                    $sort['order'] = self::SORT_DECREASE;
+                    $sort['order'] = SELF::SORT_DECREASE;
                 }
                 $this->addSort($sort['field'], $sort['order']);
             }
@@ -118,7 +134,7 @@ class SearchParamsBuilder
 
         if (isset($opts['qp'])) {
             if (!is_array($opts['qp'])) {
-                $opts['qp'] = [$opts['qp']];
+                $opts['qp'] = array($opts['qp']);
             }
             foreach ($opts['qp'] as $qp) {
                 $this->addQueryProcessor($qp);
@@ -147,7 +163,8 @@ class SearchParamsBuilder
     /**
      * 设置返回结果的偏移量。
      *
-     * @param int $start 偏移量，范围[0,5000]
+     * @param int $start 偏移量，范围[0,5000]。
+     * @return void
      */
     public function setStart($start)
     {
@@ -157,7 +174,8 @@ class SearchParamsBuilder
     /**
      * 设置返回结果的条数。
      *
-     * @param int $hits 返回结果的条数，范围[0,500]
+     * @param int $hits 返回结果的条数，范围[0,500]。
+     * @return void
      */
     public function setHits($hits)
     {
@@ -167,7 +185,8 @@ class SearchParamsBuilder
     /**
      * 设置返回结果的格式。
      *
-     * @param string $format 返回结果的格式，有json、fulljson和xml格式
+     * @param String $format 返回结果的格式，有json、fulljson和xml格式。
+     * @return void
      */
     public function setFormat($format)
     {
@@ -178,17 +197,19 @@ class SearchParamsBuilder
     /**
      * 设置要搜索的应用名称或ID。
      *
-     * @param string $appName 指定要搜索的应用名称或ID
+     * @param String $appName 指定要搜索的应用名称或ID。
+     * @return void
      */
     public function setAppName($appNames)
     {
-        $this->searchParams->config->appNames = is_array($appNames) ? $appNames : [$appNames];
+        $this->searchParams->config->appNames = is_array($appNames) ? $appNames : array($appNames);
     }
 
     /**
      * 设置搜索关键词。
      *
-     * @param string $query 设置的搜索关键词，格式为：索引名:'关键词' [AND|OR ...]
+     * @param String $query 设置的搜索关键词，格式为：索引名:'关键词' [AND|OR ...]
+     * @return void
      */
     public function setQuery($query)
     {
@@ -198,7 +219,8 @@ class SearchParamsBuilder
     /**
      * 设置KVpairs。
      *
-     * @param string $kvPairs 设置kvpairs
+     * @param String $kvPairs 设置kvpairs。
+     * @return void
      */
     public function setKvPairs($kvPairs)
     {
@@ -209,6 +231,7 @@ class SearchParamsBuilder
      * 设置结果集的返回字段。
      *
      * @param array $fetchFields 指定的返回字段的列表，例如array('a', 'b')
+     * @return void
      */
     public function setFetchFields($fetchFields)
     {
@@ -218,7 +241,8 @@ class SearchParamsBuilder
     /**
      * 如果分组查询时，指定分组的值。
      *
-     * @param mixed $routeValue 分组字段值
+     * @param Mixed $routeValue 分组字段值。
+     * @return void
      */
     public function setRouteValue($routeValue)
     {
@@ -228,7 +252,8 @@ class SearchParamsBuilder
     /**
      * 设置参与精排个数。
      *
-     * @param int $reRankSize 参与精排个数，范围[0,2000]
+     * @param int $reRankSize 参与精排个数，范围[0,2000]。
+     * @return void
      */
     public function setReRankSize($reRankSize)
     {
@@ -238,13 +263,14 @@ class SearchParamsBuilder
     /**
      * 在Config字句中增加自定义的参数。
      *
-     * @param string $key   设定自定义参数名
-     * @param mixed  $value 设定自定义参数值
+     * @param String $key 设定自定义参数名。
+     * @param Mixed $value 设定自定义参数值。
+     * @return void
      */
     public function setCustomConfig($key, $value)
     {
-        if (null == $this->searchParams->config->customConfig) {
-            $this->searchParams->config->customConfig = [];
+        if ($this->searchParams->config->customConfig == null) {
+            $this->searchParams->config->customConfig = array();
         }
 
         $this->searchParams->config->customConfig[$key] = $value;
@@ -253,12 +279,13 @@ class SearchParamsBuilder
     /**
      * 添加过滤条件。
      *
-     * @param string $filter    过滤，例如a>1
-     * @param string $condition 两个过滤条件的连接符, 例如AND OR等
+     * @param String $filter 过滤，例如a>1。
+     * @param String $condition 两个过滤条件的连接符, 例如AND OR等。
+     * @return void
      */
     public function addFilter($filter, $condition = 'AND')
     {
-        if (null == $this->searchParams->filter) {
+        if ($this->searchParams->filter == null) {
             $this->searchParams->filter = $filter;
         } else {
             $this->searchParams->filter .= " {$condition} $filter";
@@ -268,7 +295,8 @@ class SearchParamsBuilder
     /**
      * 设置过滤条件。
      *
-     * @param string $filterSting 过滤，例如a>1 OR b<2
+     * @param String $filterSting 过滤，例如a>1 OR b<2。
+     * @return void
      */
     public function setFilter($filterString)
     {
@@ -278,23 +306,25 @@ class SearchParamsBuilder
     /**
      * 添加排序规则。
      *
-     * @param string $field 排序字段
-     * @param int    $sort  排序策略，有降序0或者升序1，默认降序
+     * @param String $field 排序字段。
+     * @param int $sort 排序策略，有降序0或者升序1，默认降序。
+     * @return void
      */
     public function addSort($field, $order = self::SORT_DECREASE)
     {
-        if (null == $this->searchParams->sort) {
+        if ($this->searchParams->sort == null) {
             $this->searchParams->sort = new Sort();
-            $this->searchParams->sort->sortFields = [];
+            $this->searchParams->sort->sortFields = array();
         }
-        $sortField = new SortField(['field' => $field, 'order' => $order]);
+        $sortField = new SortField(array('field' => $field, 'order' => $order));
         $this->searchParams->sort->sortFields[] = $sortField;
     }
 
     /**
      * 设置粗排表达式名称。
      *
-     * @param string $firstRankName 指定的粗排表达式名称
+     * @param String $firstRankName 指定的粗排表达式名称。
+     * @return void
      */
     public function setFirstRankName($firstRankName)
     {
@@ -304,7 +334,8 @@ class SearchParamsBuilder
     /**
      * 设置精排表达式名称。
      *
-     * @param string $secondRankName 指定的精排表达式名称
+     * @param String $secondRankName 指定的精排表达式名称。
+     * @return void
      */
     public function setSecondRankName($secondRankName)
     {
@@ -314,13 +345,14 @@ class SearchParamsBuilder
     /**
      * 设置聚合配置。
      *
-     * @param array $agg 指定的聚合配置
+     * @param array $agg 指定的聚合配置。
+     * @return void
      */
     public function addAggregate($agg)
     {
         $aggregate = new Aggregate($agg);
-        if (null == $this->searchParams->aggregates) {
-            $this->searchParams->aggregates = [];
+        if ($this->searchParams->aggregates == null) {
+            $this->searchParams->aggregates = array();
         }
         $this->searchParams->aggregates[] = $aggregate;
     }
@@ -328,13 +360,14 @@ class SearchParamsBuilder
     /**
      * 设置去重配置。
      *
-     * @param array $dist 指定的去重配置
+     * @param array $dist 指定的去重配置。
+     * @return void
      */
     public function addDistinct($dist)
     {
         $distinct = new Distinct($dist);
-        if (null == $this->searchParams->distincts) {
-            $this->searchParams->distincts = [];
+        if ($this->searchParams->distincts == null) {
+            $this->searchParams->distincts = array();
         }
         $this->searchParams->distincts[] = $distinct;
     }
@@ -342,13 +375,14 @@ class SearchParamsBuilder
     /**
      * 设置搜索结果摘要配置。
      *
-     * @param array $summaryMeta 指定的摘要字段配置
+     * @param array $summaryMeta 指定的摘要字段配置。
+     * @return void
      */
     public function addSummary($summaryMeta)
     {
         $summary = new Summary($summaryMeta);
-        if (null == $this->searchParams->summaries) {
-            $this->searchParams->summaries = [];
+        if ($this->searchParams->summaries == null) {
+            $this->searchParams->summaries = array();
         }
 
         $this->searchParams->summaries[] = $summary;
@@ -357,12 +391,13 @@ class SearchParamsBuilder
     /**
      * 添加查询分析配置。
      *
-     * @param array $qpName 指定的QP名称
+     * @param array $qpName 指定的QP名称。
+     * @return void
      */
     public function addQueryProcessor($qpName)
     {
-        if (null == $this->searchParams->queryProcessorNames) {
-            $this->searchParams->queryProcessorNames = [];
+        if ($this->searchParams->queryProcessorNames == null) {
+            $this->searchParams->queryProcessorNames = array();
         }
 
         $this->searchParams->queryProcessorNames[] = $qpName;
@@ -371,12 +406,13 @@ class SearchParamsBuilder
     /**
      * 添加要关闭的function。
      *
-     * @param string $disabledFunction 指定的要关闭的方法名称
+     * @param String $disabledFunction 指定的要关闭的方法名称。
+     * @return void
      */
     public function addDisableFunctions($disabledFunction)
     {
-        if (null == $this->searchParams->disableFunctions) {
-            $this->searchParams->disableFunctions = [];
+        if ($this->searchParams->disableFunctions == null) {
+            $this->searchParams->disableFunctions = array();
         }
 
         $this->searchParams->disableFunctions[] = $disabledFunction;
@@ -385,13 +421,14 @@ class SearchParamsBuilder
     /**
      * 设置自定义参数。
      *
-     * @param string $key   自定义参数的参数名
-     * @param string $value 自定义参数的参数值
+     * @param String $key 自定义参数的参数名。
+     * @param String $value 自定义参数的参数值。
+     * @return void
      */
     public function setCustomParam($key, $value)
     {
-        if (null == $this->searchParams->customParam) {
-            $this->searchParams->customParam = [];
+        if ($this->searchParams->customParam == null) {
+            $this->searchParams->customParam = array();
         }
 
         $this->searchParams->customParam[$key] = $value;
@@ -400,11 +437,12 @@ class SearchParamsBuilder
     /**
      * 设置扫描数据的过期时间。
      *
-     * @param string $expireTime 设定scroll的过期时间
+     * @param String $expireTime 设定scroll的过期时间。
+     * @return void
      */
     public function setScrollExpire($expiredTime)
     {
-        if (null == $this->searchParams->deepPaging) {
+        if ($this->searchParams->deepPaging == null) {
             $this->searchParams->deepPaging = new DeepPaging();
         }
 
@@ -416,15 +454,72 @@ class SearchParamsBuilder
      *
      * ScrollId 为上一次扫描时返回的信息。
      *
-     * @param string $scrollId 设定scroll的scrollId
+     * @param String $scrollId 设定scroll的scrollId。
+     * @return void
      */
     public function setScrollId($scrollId)
     {
-        if (null == $this->searchParams->deepPaging) {
+        if ($this->searchParams->deepPaging == null) {
             $this->searchParams->deepPaging = new DeepPaging();
         }
 
         $this->searchParams->deepPaging->scrollId = $scrollId;
+    }
+
+    /**
+     * 设置abtest数据的sceneTag。
+     *
+     * SceneTag 为场景标签。
+     *
+     * @param String $sceneTag 设定abtest的sceneTag。
+     * @return void
+     */
+    public function setSceneTag($sceneTag)
+    {
+        if ($this->searchParams->abtest == null) {
+            $this->searchParams->abtest = new Abtest();
+        }
+
+        $this->searchParams->abtest->sceneTag = $sceneTag;
+    }
+
+    /**
+     * 设置abtest数据的flowDivider。
+     *
+     * FlowDivider 为流量分配标识。
+     *
+     * @param String $flowDivider 设定abtest的flowDivider。
+     * @return void
+     */
+    public function setFlowDivider($flowDivider)
+    {
+        if ($this->searchParams->abtest == null) {
+            $this->searchParams->abtest = new Abtest();
+        }
+
+        $this->searchParams->abtest->flowDivider = $flowDivider;
+    }
+
+    /**
+     * 设置终端用户的id，用来统计uv信息。
+     *
+     * @param String $userId 设定终端用户的id。
+     * @return void
+     */
+    public function setUserId($userId)
+    {
+        $this->searchParams->userId = $userId;
+    }
+
+    /**
+     * 设置终端用户输入的query。
+     *
+     * @param String $rawQuery 设定终端用户输入的query。
+     * @return void
+     */
+    public function setRawQuery($rawQuery)
+    {
+        $this->searchParams->rawQuery = $rawQuery;
     }
 
     /**

@@ -1,21 +1,34 @@
 <?php
-
 /*
- * This file is part of the jimchen/aliyun-opensearch.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
  *
- * (c) JimChen <18219111672@163.com>
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * This source file is subject to the MIT license that is bundled.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ *
+ * @package thrift.protocol
  */
 
 namespace Thrift\Protocol;
 
+use Thrift\Type\TType;
 use Thrift\Exception\TProtocolException;
 use Thrift\Factory\TStringFuncFactory;
-use Thrift\Type\TType;
 
 /**
  * Binary implementation of the Thrift protocol.
+ *
  */
 class TBinaryProtocol extends TProtocol
 {
@@ -38,15 +51,15 @@ class TBinaryProtocol extends TProtocol
             $version = self::VERSION_1 | $type;
 
             return
-        $this->writeI32($version) +
-        $this->writeString($name) +
-        $this->writeI32($seqid);
+            $this->writeI32($version) +
+            $this->writeString($name) +
+            $this->writeI32($seqid);
+        } else {
+            return
+            $this->writeString($name) +
+            $this->writeByte($type) +
+            $this->writeI32($seqid);
         }
-
-        return
-        $this->writeString($name) +
-        $this->writeByte($type) +
-        $this->writeI32($seqid);
     }
 
     public function writeMessageEnd()
@@ -67,8 +80,8 @@ class TBinaryProtocol extends TProtocol
     public function writeFieldBegin($fieldName, $fieldType, $fieldId)
     {
         return
-      $this->writeByte($fieldType) +
-      $this->writeI16($fieldId);
+        $this->writeByte($fieldType) +
+        $this->writeI16($fieldId);
     }
 
     public function writeFieldEnd()
@@ -79,15 +92,15 @@ class TBinaryProtocol extends TProtocol
     public function writeFieldStop()
     {
         return
-      $this->writeByte(TType::STOP);
+        $this->writeByte(TType::STOP);
     }
 
     public function writeMapBegin($keyType, $valType, $size)
     {
         return
-      $this->writeByte($keyType) +
-      $this->writeByte($valType) +
-      $this->writeI32($size);
+        $this->writeByte($keyType) +
+        $this->writeByte($valType) +
+        $this->writeI32($size);
     }
 
     public function writeMapEnd()
@@ -98,8 +111,8 @@ class TBinaryProtocol extends TProtocol
     public function writeListBegin($elemType, $size)
     {
         return
-      $this->writeByte($elemType) +
-      $this->writeI32($size);
+        $this->writeByte($elemType) +
+        $this->writeI32($size);
     }
 
     public function writeListEnd()
@@ -110,8 +123,8 @@ class TBinaryProtocol extends TProtocol
     public function writeSetBegin($elemType, $size)
     {
         return
-      $this->writeByte($elemType) +
-      $this->writeI32($size);
+        $this->writeByte($elemType) +
+        $this->writeI32($size);
     }
 
     public function writeSetEnd()
@@ -153,9 +166,9 @@ class TBinaryProtocol extends TProtocol
 
     public function writeI64($value)
     {
-        // If we are on a 32bit architecture we have to explicitly deal with
-        // 64-bit twos-complement arithmetic since PHP wants to treat all ints
-        // as signed and any int over 2^31 - 1 as a float
+      // If we are on a 32bit architecture we have to explicitly deal with
+      // 64-bit twos-complement arithmetic since PHP wants to treat all ints
+      // as signed and any int over 2^31 - 1 as a float
         if (PHP_INT_SIZE == 4) {
             $neg = $value < 0;
 
@@ -171,12 +184,13 @@ class TBinaryProtocol extends TProtocol
                 $lo = ~$lo;
                 if (($lo & (int) 0xffffffff) == (int) 0xffffffff) {
                     $lo = 0;
-                    ++$hi;
+                    $hi++;
                 } else {
-                    ++$lo;
+                    $lo++;
                 }
             }
             $data = pack('N2', $hi, $lo);
+
         } else {
             $hi = $value >> 32;
             $lo = $value & 0xFFFFFFFF;
@@ -217,18 +231,19 @@ class TBinaryProtocol extends TProtocol
             }
             $type = $sz & 0x000000ff;
             $result +=
-        $this->readString($name) +
-        $this->readI32($seqid);
+            $this->readString($name) +
+            $this->readI32($seqid);
         } else {
             if ($this->strictRead_) {
                 throw new TProtocolException('No version identifier, old protocol client?', TProtocolException::BAD_VERSION);
+            } else {
+              // Handle pre-versioned input
+                $name = $this->trans_->readAll($sz);
+                $result +=
+                $sz +
+                $this->readByte($type) +
+                $this->readI32($seqid);
             }
-            // Handle pre-versioned input
-            $name = $this->trans_->readAll($sz);
-            $result +=
-          $sz +
-          $this->readByte($type) +
-          $this->readI32($seqid);
         }
 
         return $result;
@@ -254,7 +269,7 @@ class TBinaryProtocol extends TProtocol
     public function readFieldBegin(&$name, &$fieldType, &$fieldId)
     {
         $result = $this->readByte($fieldType);
-        if (TType::STOP == $fieldType) {
+        if ($fieldType == TType::STOP) {
             $fieldId = 0;
 
             return $result;
@@ -272,9 +287,9 @@ class TBinaryProtocol extends TProtocol
     public function readMapBegin(&$keyType, &$valType, &$size)
     {
         return
-      $this->readByte($keyType) +
-      $this->readByte($valType) +
-      $this->readI32($size);
+        $this->readByte($keyType) +
+        $this->readByte($valType) +
+        $this->readI32($size);
     }
 
     public function readMapEnd()
@@ -285,8 +300,8 @@ class TBinaryProtocol extends TProtocol
     public function readListBegin(&$elemType, &$size)
     {
         return
-      $this->readByte($elemType) +
-      $this->readI32($size);
+        $this->readByte($elemType) +
+        $this->readI32($size);
     }
 
     public function readListEnd()
@@ -297,8 +312,8 @@ class TBinaryProtocol extends TProtocol
     public function readSetBegin(&$elemType, &$size)
     {
         return
-      $this->readByte($elemType) +
-      $this->readI32($size);
+        $this->readByte($elemType) +
+        $this->readI32($size);
     }
 
     public function readSetEnd()
@@ -310,7 +325,7 @@ class TBinaryProtocol extends TProtocol
     {
         $data = $this->trans_->readAll(1);
         $arr = unpack('c', $data);
-        $value = 1 == $arr[1];
+        $value = $arr[1] == 1;
 
         return 1;
     }
@@ -354,29 +369,29 @@ class TBinaryProtocol extends TProtocol
 
         $arr = unpack('N2', $data);
 
-        // If we are on a 32bit architecture we have to explicitly deal with
-        // 64-bit twos-complement arithmetic since PHP wants to treat all ints
-        // as signed and any int over 2^31 - 1 as a float
+      // If we are on a 32bit architecture we have to explicitly deal with
+      // 64-bit twos-complement arithmetic since PHP wants to treat all ints
+      // as signed and any int over 2^31 - 1 as a float
         if (PHP_INT_SIZE == 4) {
             $hi = $arr[1];
             $lo = $arr[2];
-            $isNeg = $hi < 0;
+            $isNeg = $hi  < 0;
 
-            // Check for a negative
+          // Check for a negative
             if ($isNeg) {
                 $hi = ~$hi & (int) 0xffffffff;
                 $lo = ~$lo & (int) 0xffffffff;
 
                 if ($lo == (int) 0xffffffff) {
-                    ++$hi;
+                    $hi++;
                     $lo = 0;
                 } else {
-                    ++$lo;
+                    $lo++;
                 }
             }
 
-            // Force 32bit words in excess of 2G to pe positive - we deal wigh sign
-            // explicitly below
+          // Force 32bit words in excess of 2G to pe positive - we deal wigh sign
+          // explicitly below
 
             if ($hi & (int) 0x80000000) {
                 $hi &= (int) 0x7fffffff;
@@ -394,19 +409,19 @@ class TBinaryProtocol extends TProtocol
                 $value = 0 - $value;
             }
         } else {
-            // Upcast negatives in LSB bit
+          // Upcast negatives in LSB bit
             if ($arr[2] & 0x80000000) {
                 $arr[2] = $arr[2] & 0xffffffff;
             }
 
-            // Check for a negative
+          // Check for a negative
             if ($arr[1] & 0x80000000) {
                 $arr[1] = $arr[1] & 0xffffffff;
                 $arr[1] = $arr[1] ^ 0xffffffff;
                 $arr[2] = $arr[2] ^ 0xffffffff;
-                $value = 0 - $arr[1] * 4294967296 - $arr[2] - 1;
+                $value = 0 - $arr[1]*4294967296 - $arr[2] - 1;
             } else {
-                $value = $arr[1] * 4294967296 + $arr[2];
+                $value = $arr[1]*4294967296 + $arr[2];
             }
         }
 
